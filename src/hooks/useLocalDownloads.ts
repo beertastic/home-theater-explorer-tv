@@ -18,9 +18,37 @@ interface LocalFile {
   lastAccessed: string;
 }
 
+// Mock data for testing
+const mockLocalFiles: LocalFile[] = [
+  {
+    mediaId: '1',
+    title: 'The Shawshank Redemption',
+    filePath: 'offline://1',
+    fileSize: 2147483648, // 2GB
+    downloadDate: '2024-01-15T10:30:00Z',
+    lastAccessed: '2024-01-20T14:45:00Z'
+  },
+  {
+    mediaId: '3',
+    title: 'The Dark Knight',
+    filePath: 'offline://3',
+    fileSize: 3221225472, // 3GB
+    downloadDate: '2024-01-10T08:15:00Z',
+    lastAccessed: '2024-01-18T20:30:00Z'
+  },
+  {
+    mediaId: '6',
+    title: 'Breaking Bad',
+    filePath: 'offline://6',
+    fileSize: 1073741824, // 1GB
+    downloadDate: '2024-01-12T16:20:00Z',
+    lastAccessed: '2024-01-19T12:00:00Z'
+  }
+];
+
 export const useLocalDownloads = () => {
   const [downloads, setDownloads] = useState<DownloadProgress[]>([]);
-  const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
+  const [localFiles, setLocalFiles] = useState<LocalFile[]>(mockLocalFiles);
   const { toast } = useToast();
 
   // Check if file exists locally
