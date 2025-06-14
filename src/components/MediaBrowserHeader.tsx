@@ -29,10 +29,12 @@ const MediaBrowserHeader = ({
   lastUpdated
 }: MediaBrowserHeaderProps) => {
   const [showProgress, setShowProgress] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [tvProgress, setTvProgress] = useState(0);
+  const [movieProgress, setMovieProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
-  const [folderCount] = useState(247); // Fake data
-  const [dbFileCount] = useState(1842); // Fake data
+  const [tvFolderCount] = useState(143); // Fake TV folder count
+  const [movieFolderCount] = useState(104); // Fake movie folder count
+  const [dbFileCount] = useState(1842); // Fake database file count
   const [newFilesFound, setNewFilesFound] = useState(0);
 
   const formatLastUpdated = (dateString: string) => {
@@ -52,30 +54,34 @@ const MediaBrowserHeader = ({
 
   const handleRescanWithProgress = () => {
     setShowProgress(true);
-    setProgress(0);
+    setTvProgress(0);
+    setMovieProgress(0);
     setNewFilesFound(0);
     
-    // Simulate progress steps
+    // Simulate separate progress for TV and Movies
     const steps = [
-      { progress: 0, step: 'Initializing scan...' },
-      { progress: 15, step: 'Scanning media folders...' },
-      { progress: 35, step: 'Checking database entries...' },
-      { progress: 55, step: 'Comparing file timestamps...' },
-      { progress: 75, step: 'Processing new files...' },
-      { progress: 90, step: 'Updating metadata...' },
-      { progress: 100, step: 'Scan complete!' }
+      { tv: 0, movie: 0, step: 'Initializing scan...' },
+      { tv: 10, movie: 5, step: 'Scanning TV show folders...' },
+      { tv: 25, movie: 15, step: 'Scanning movie folders...' },
+      { tv: 45, movie: 35, step: 'Checking database entries...' },
+      { tv: 60, movie: 55, step: 'Comparing file timestamps...' },
+      { tv: 75, movie: 70, step: 'Processing TV episodes...' },
+      { tv: 85, movie: 85, step: 'Processing movie files...' },
+      { tv: 95, movie: 95, step: 'Updating metadata...' },
+      { tv: 100, movie: 100, step: 'Scan complete!' }
     ];
     
     let stepIndex = 0;
     const interval = setInterval(() => {
       if (stepIndex < steps.length) {
         const currentStepData = steps[stepIndex];
-        setProgress(currentStepData.progress);
+        setTvProgress(currentStepData.tv);
+        setMovieProgress(currentStepData.movie);
         setCurrentStep(currentStepData.step);
         
         // Simulate finding new files at certain steps
-        if (stepIndex === 4) {
-          setNewFilesFound(Math.floor(Math.random() * 8) + 1); // 1-8 new files
+        if (stepIndex === 6) {
+          setNewFilesFound(Math.floor(Math.random() * 12) + 3); // 3-14 new files
         }
         
         stepIndex++;
@@ -84,9 +90,9 @@ const MediaBrowserHeader = ({
         setTimeout(() => {
           setShowProgress(false);
           onRescan(); // Call the original rescan function
-        }, 1000);
+        }, 1500);
       }
-    }, 800);
+    }, 900);
   };
 
   return (
@@ -140,9 +146,11 @@ const MediaBrowserHeader = ({
 
       <LibraryUpdateProgress
         isVisible={showProgress}
-        progress={progress}
         currentStep={currentStep}
-        folderCount={folderCount}
+        tvProgress={tvProgress}
+        movieProgress={movieProgress}
+        tvFolderCount={tvFolderCount}
+        movieFolderCount={movieFolderCount}
         dbFileCount={dbFileCount}
         newFilesFound={newFilesFound}
       />
