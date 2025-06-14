@@ -111,37 +111,40 @@ const DownloadsManager = () => {
                 {localFiles.map((file) => (
                   <div key={file.mediaId} className="bg-slate-800 rounded-lg p-4">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <h4 className="text-white font-medium">{file.title}</h4>
                         <p className="text-gray-400 text-sm">
                           {formatFileSize(file.fileSize)} • Downloaded {formatDate(file.downloadDate)}
                         </p>
                       </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <button className="text-red-400 hover:text-red-300 p-2">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Downloaded File</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{file.title}" from your offline storage? 
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteLocalFile(file.mediaId)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Delete File
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <div className="flex items-center gap-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button className="flex items-center gap-2 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors">
+                              <Trash2 className="h-4 w-4" />
+                              <span className="text-sm">Remove from Local</span>
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove from Local Storage</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove "{file.title}" from your local storage? 
+                                This will free up {formatFileSize(file.fileSize)} of space, but you'll need to download it again to watch offline.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteLocalFile(file.mediaId)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Remove from Local
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 ))}
