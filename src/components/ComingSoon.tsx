@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Heart, Calendar, Clock } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { format, parseISO, isAfter } from 'date-fns';
@@ -24,21 +25,22 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const [selectedShowId, setSelectedShowId] = useState<string>('');
   const [selectedShowTitle, setSelectedShowTitle] = useState<string>('');
 
-  // Get favorite TV shows with upcoming episodes
-  const upcomingShows = mediaData
-    .filter(item => {
-      console.log(`Checking item: ${item.title}, type: ${item.type}, isFavorite: ${item.isFavorite}, nextEpisodeDate: ${item.nextEpisodeDate}`);
-      return item.type === 'tv' && 
-             item.isFavorite && 
-             item.nextEpisodeDate &&
-             isAfter(parseISO(item.nextEpisodeDate), new Date());
-    })
-    .sort((a, b) => 
-      parseISO(a.nextEpisodeDate!).getTime() - parseISO(b.nextEpisodeDate!).getTime()
-    )
-    .slice(0, 8); // Show max 8 shows
+  // Memoize the expensive filtering operation to prevent unnecessary re-renders
+  const upcomingShows = useMemo(() => {
+    const shows = mediaData
+      .filter(item => {
+        return item.type === 'tv' && 
+               item.isFavorite && 
+               item.nextEpisodeDate &&
+               isAfter(parseISO(item.nextEpisodeDate), new Date());
+      })
+      .sort((a, b) => 
+        parseISO(a.nextEpisodeDate!).getTime() - parseISO(b.nextEpisodeDate!).getTime()
+      )
+      .slice(0, 8); // Show max 8 shows
 
-  console.log(`Found ${upcomingShows.length} upcoming shows:`, upcomingShows.map(s => s.title));
+    return shows;
+  }, [mediaData]);
 
   const handleFavoriteClick = (showId: string, showTitle: string, isFavorite: boolean) => {
     if (isFavorite) {
@@ -58,7 +60,6 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   };
 
   if (upcomingShows.length === 0) {
-    console.log('No upcoming shows found, not rendering Coming Soon section');
     return null;
   }
 
