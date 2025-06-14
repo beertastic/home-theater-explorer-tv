@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
+import RandomMovieSelector from './RandomMovieSelector';
+import MediaPagination from './MediaPagination';
 import { mockMediaData, MediaItem } from '@/data/mockMedia';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,6 +13,8 @@ const MediaBrowser = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress'>('all');
   const [isScanning, setIsScanning] = useState(false);
   const [mediaData, setMediaData] = useState<MediaItem[]>(mockMediaData);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(24); // 24 items per page for good grid layout
   const { toast } = useToast();
 
   const handleRescan = async () => {
@@ -142,6 +146,16 @@ const MediaBrowser = () => {
     return filtered;
   }, [searchQuery, activeFilter, mediaData]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFilter]);
+
   const getFilterLabel = () => {
     switch (activeFilter) {
       case 'recently-added':
@@ -190,6 +204,12 @@ const MediaBrowser = () => {
         </button>
       </div>
 
+      {/* Random Movie Selector */}
+      <RandomMovieSelector 
+        mediaData={mediaData}
+        onSelectMedia={setSelectedMedia}
+      />
+
       {/* Search and Filters */}
       <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative flex-1 max-w-md">
@@ -234,9 +254,9 @@ const MediaBrowser = () => {
         </div>
       )}
 
-      {/* Media Grid */}
+      {/* Media Grid with pagination */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-        {filteredMedia.map((media) => (
+        {paginatedMedia.map((media) => (
           <MediaCard
             key={media.id}
             media={media}
@@ -245,6 +265,15 @@ const MediaBrowser = () => {
           />
         ))}
       </div>
+
+      {/* Pagination */}
+      <MediaPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={filteredMedia.length}
+        itemsPerPage={itemsPerPage}
+      />
 
       {/* Results count */}
       <div className="mt-8 text-center text-gray-400">
