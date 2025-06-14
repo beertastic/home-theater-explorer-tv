@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Star, Calendar, Clock, Play } from 'lucide-react';
+import { Star, Calendar, Clock, Play, Download, Trash2 } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
+import { useLocalDownloads } from '@/hooks/useLocalDownloads';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
   const [mediaToRemove, setMediaToRemove] = useState<MediaItem | null>(null);
   const [playingMedia, setPlayingMedia] = useState<MediaItem | null>(null);
+  const { hasLocalCopy, startDownload, deleteLocalFile, getDownloadProgress } = useLocalDownloads();
 
   const handleFavoriteClick = (media: MediaItem) => {
     if (media.isFavorite) {
@@ -43,6 +45,14 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
 
   const handlePlayClick = (media: MediaItem) => {
     setPlayingMedia(media);
+  };
+
+  const handleDownload = (media: MediaItem) => {
+    startDownload(media.id, media.title, `/api/video/${media.id}`);
+  };
+
+  const handleRemoveDownload = (media: MediaItem) => {
+    deleteLocalFile(media.id);
   };
 
   const getUpcomingMedia = () => {
@@ -89,6 +99,8 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       <div className="space-y-4">
         {sortedMedia.map((media) => {
           const isNew = getNewlyAddedMedia().some(newMedia => newMedia.id === media.id);
+          const hasDownload = hasLocalCopy(media.id);
+          const downloadProgress = getDownloadProgress(media.id);
           
           return (
             <div key={media.id} className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800/70 transition-colors">
@@ -119,6 +131,16 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                     {isNew ? 'NEW' : 'UPCOMING'}
                   </span>
                   <MediaVerificationStatus mediaId={media.id} />
+                  {hasDownload && (
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-700 text-white">
+                      DOWNLOADED
+                    </span>
+                  )}
+                  {downloadProgress && (
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-600 text-white">
+                      {downloadProgress.progress}%
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -128,6 +150,26 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                 >
                   <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                 </button>
+                
+                {hasDownload ? (
+                  <button
+                    onClick={() => handleRemoveDownload(media)}
+                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
+                    title="Remove download"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleDownload(media)}
+                    disabled={!!downloadProgress}
+                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors disabled:opacity-50"
+                    title="Download for offline viewing"
+                  >
+                    <Download className="h-5 w-5" />
+                  </button>
+                )}
+                
                 <button 
                   onClick={() => handlePlayClick(media)}
                   className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
