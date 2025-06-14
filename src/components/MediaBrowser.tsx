@@ -17,7 +17,7 @@ const MediaBrowser = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [mediaData, setMediaData] = useState<MediaItem[]>(mockMedia);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(24); // 24 items per page for good grid layout
+  const [itemsPerPage] = useState(8); // Changed from 24 to 8 items per page
   const [isRandomSelectorOpen, setIsRandomSelectorOpen] = useState(false);
   const [isMediaScannerOpen, setIsMediaScannerOpen] = useState(false);
   const { toast } = useToast();
