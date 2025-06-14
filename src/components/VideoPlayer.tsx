@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, Settings, Subtitles } from 'lucide-react';
 
 interface VideoPlayerProps {
   src: string;
@@ -16,6 +16,11 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
+  const [textTracks, setTextTracks] = useState<TextTrack[]>([]);
+  const [selectedAudioTrack, setSelectedAudioTrack] = useState(0);
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState(-1);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -23,15 +28,34 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
 
     const updateTime = () => setCurrentTime(video.currentTime);
     const updateDuration = () => setDuration(video.duration);
+    
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      
+      // Get audio tracks
+      if (video.audioTracks) {
+        setAudioTracks(Array.from(video.audioTracks));
+      }
+      
+      // Get text tracks (subtitles)
+      if (video.textTracks) {
+        setTextTracks(Array.from(video.textTracks));
+      }
+    };
 
     video.addEventListener('timeupdate', updateTime);
-    video.addEventListener('loadedmetadata', updateDuration);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
-      video.removeEventListener('loadedmetadata', updateDuration);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, []);
+
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+  };
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -95,6 +119,40 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
     }
   };
 
+  const handleAudioTrackChange = (trackIndex: number) => {
+    const video = videoRef.current;
+    if (!video || !video.audioTracks) return;
+
+    // Disable all audio tracks
+    for (let i = 0; i < video.audioTracks.length; i++) {
+      video.audioTracks[i].enabled = false;
+    }
+    
+    // Enable selected track
+    if (trackIndex >= 0 && trackIndex < video.audioTracks.length) {
+      video.audioTracks[trackIndex].enabled = true;
+      setSelectedAudioTrack(trackIndex);
+    }
+  };
+
+  const handleSubtitleTrackChange = (trackIndex: number) => {
+    const video = videoRef.current;
+    if (!video || !video.textTracks) return;
+
+    // Hide all text tracks
+    for (let i = 0; i < video.textTracks.length; i++) {
+      video.textTracks[i].mode = 'hidden';
+    }
+    
+    // Show selected track
+    if (trackIndex >= 0 && trackIndex < video.textTracks.length) {
+      video.textTracks[trackIndex].mode = 'showing';
+      setSelectedSubtitleTrack(trackIndex);
+    } else {
+      setSelectedSubtitleTrack(-1);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div 
@@ -115,18 +173,18 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
           <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
             <h2 className="text-white text-xl font-semibold">{title}</h2>
             <button
-              onClick={onClose}
-              className="text-white hover:text-gray-300 text-2xl font-bold"
+              onClick={handleCloseClick}
+              className="text-white hover:text-gray-300 text-2xl font-bold z-10 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
             >
               ×
             </button>
           </div>
 
           {/* Center play button */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <button
               onClick={togglePlay}
-              className="bg-white/20 hover:bg-white/30 rounded-full p-4 transition-colors"
+              className="bg-white/20 hover:bg-white/30 rounded-full p-4 transition-colors pointer-events-auto"
             >
               {isPlaying ? (
                 <Pause className="h-12 w-12 text-white" />
@@ -135,6 +193,61 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
               )}
             </button>
           </div>
+
+          {/* Settings panel */}
+          {showSettings && (
+            <div className="absolute bottom-20 right-4 bg-black/90 rounded-lg p-4 min-w-64">
+              <h3 className="text-white font-semibold mb-3">Settings</h3>
+              
+              {/* Audio tracks */}
+              {audioTracks.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-gray-300 text-sm mb-2">Audio Track</h4>
+                  {audioTracks.map((track, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleAudioTrackChange(index)}
+                      className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                        selectedAudioTrack === index 
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      {track.label || `Audio ${index + 1}`} {track.language && `(${track.language})`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Subtitle tracks */}
+              <div>
+                <h4 className="text-gray-300 text-sm mb-2">Subtitles</h4>
+                <button
+                  onClick={() => handleSubtitleTrackChange(-1)}
+                  className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors mb-1 ${
+                    selectedSubtitleTrack === -1 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  Off
+                </button>
+                {textTracks.map((track, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSubtitleTrackChange(index)}
+                    className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors mb-1 ${
+                      selectedSubtitleTrack === index 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {track.label || `Subtitle ${index + 1}`} {track.language && `(${track.language})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bottom controls */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -203,6 +316,12 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
                     className="w-20 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer video-slider"
                   />
                 </div>
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`text-white hover:text-gray-300 ${showSettings ? 'bg-blue-600 rounded' : ''}`}
+                >
+                  <Settings className="h-5 w-5" />
+                </button>
                 <button
                   onClick={toggleFullscreen}
                   className="text-white hover:text-gray-300"
