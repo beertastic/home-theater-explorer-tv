@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import BulkVerificationDisplay from './verification/BulkVerificationDisplay';
+import SingleMediaVerification from './verification/SingleMediaVerification';
 
 interface VerificationResult {
   id: string;
@@ -95,39 +97,6 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
     }
   }, [mediaId]);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
-      case 'file-missing':
-        return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
-      default:
-        return <XCircle className="h-4 w-4 text-red-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return 'text-green-400';
-      case 'file-missing':
-        return 'text-yellow-400';
-      default:
-        return 'text-red-400';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return 'Verified';
-      case 'file-missing':
-        return 'Files Missing';
-      default:
-        return 'Not Found';
-    }
-  };
-
   if (showBulkCheck) {
     return (
       <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
@@ -143,68 +112,16 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
           </button>
         </div>
 
-        {bulkResults && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">{bulkResults.totalChecked}</div>
-                <div className="text-gray-400">Checked</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">{bulkResults.verified}</div>
-                <div className="text-gray-400">Verified</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{bulkResults.issues}</div>
-                <div className="text-gray-400">Issues</div>
-              </div>
-            </div>
-
-            {bulkResults.results.length > 0 && (
-              <div className="space-y-2 mt-4">
-                <h4 className="text-sm font-semibold text-gray-300">Recent Items:</h4>
-                {bulkResults.results.map((result) => (
-                  <div key={result.id} className="flex items-center justify-between p-2 bg-slate-700/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(result.status)}
-                      <span className="text-white text-sm">{result.title} ({result.year})</span>
-                    </div>
-                    <span className={`text-xs ${getStatusColor(result.status)}`}>
-                      {getStatusText(result.status)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {bulkResults && <BulkVerificationDisplay results={bulkResults} />}
       </div>
     );
   }
 
-  if (!verificationResult && !isLoading) return null;
-
   return (
-    <div className="flex items-center gap-2 text-sm">
-      {isLoading ? (
-        <>
-          <RefreshCw className="h-4 w-4 animate-spin text-blue-400" />
-          <span className="text-gray-300">Verifying...</span>
-        </>
-      ) : verificationResult ? (
-        <>
-          {getStatusIcon(verificationResult.status)}
-          <span className={getStatusColor(verificationResult.status)}>
-            {getStatusText(verificationResult.status)}
-          </span>
-          {verificationResult.status === 'file-missing' && (
-            <span className="text-gray-400 text-xs">
-              Expected: {verificationResult.filePath}
-            </span>
-          )}
-        </>
-      ) : null}
-    </div>
+    <SingleMediaVerification 
+      verificationResult={verificationResult}
+      isLoading={isLoading}
+    />
   );
 };
 
