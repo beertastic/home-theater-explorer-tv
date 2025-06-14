@@ -109,5 +109,12 @@ export const apiService = {
     const response = await fetch(`${API_BASE_URL}/tmdb/test`);
     if (!response.ok) throw new Error('Failed to test TMDB connection');
     return response.json();
-  }
+  },
+
+  // Get library statistics
+  async getLibraryStats(): Promise<{ success: boolean; dbFileCount: number; movieFolderCount: number; tvFolderCount: number; totalFolders: number }> {
+    const response = await fetch(`${API_BASE_URL}/stats/library`);
+    if (!response.ok) throw new Error('Failed to get library stats');
+    return response.json();
+  },
 };

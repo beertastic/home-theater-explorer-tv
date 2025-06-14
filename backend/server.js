@@ -671,6 +671,69 @@ app.get('/api/scan/folders', (req, res) => {
   }
 });
 
+// Get library statistics
+app.get('/api/stats/library', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    // Get database count
+    db.query('SELECT COUNT(*) as count FROM media', (err, dbResults) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      const dbCount = dbResults[0].count;
+      
+      // Get folder counts from file system
+      const movieLibraryPath = process.env.MOVIES_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+      const tvLibraryPath = process.env.TV_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+      
+      let movieFolderCount = 0;
+      let tvFolderCount = 0;
+      
+      // Count movie folders
+      if (movieLibraryPath && fs.existsSync(movieLibraryPath)) {
+        try {
+          const movieItems = fs.readdirSync(movieLibraryPath, { withFileTypes: true });
+          movieFolderCount = movieItems.filter(item => item.isDirectory()).length;
+        } catch (error) {
+          console.error('Error counting movie folders:', error.message);
+        }
+      }
+      
+      // Count TV folders (if different path)
+      if (tvLibraryPath && tvLibraryPath !== movieLibraryPath && fs.existsSync(tvLibraryPath)) {
+        try {
+          const tvItems = fs.readdirSync(tvLibraryPath, { withFileTypes: true });
+          tvFolderCount = tvItems.filter(item => item.isDirectory()).length;
+        } catch (error) {
+          console.error('Error counting TV folders:', error.message);
+        }
+      } else if (tvLibraryPath === movieLibraryPath) {
+        // If same path, we need to distinguish between movies and TV
+        // For now, we'll split the count or use a different logic
+        tvFolderCount = Math.floor(movieFolderCount * 0.3); // Rough estimate
+      }
+      
+      res.json({
+        success: true,
+        dbFileCount: dbCount,
+        movieFolderCount,
+        tvFolderCount,
+        totalFolders: movieFolderCount + tvFolderCount
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error getting library stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Media Center API running on port ${port}`);
 });

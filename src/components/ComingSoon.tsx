@@ -82,10 +82,11 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
 
   const getNewlyAddedMedia = () => {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 7);
+    cutoff.setDate(cutoff.getDate() - 7); // Last 7 days
     return mediaData.filter(media => {
       if (media.watchStatus === 'watched') return false;
-      return new Date(media.dateAdded) >= cutoff;
+      const dateAdded = new Date(media.dateAdded);
+      return dateAdded >= cutoff;
     }).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
   };
 

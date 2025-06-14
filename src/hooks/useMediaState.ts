@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MediaItem } from '@/types/media';
 import { apiService, ApiMediaItem } from '@/services/apiService';
@@ -48,6 +47,12 @@ export const useMediaState = () => {
   const [isMediaScannerOpen, setIsMediaScannerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [libraryStats, setLibraryStats] = useState({
+    dbFileCount: 0,
+    movieFolderCount: 0,
+    tvFolderCount: 0,
+    totalFolders: 0
+  });
 
   // Load media data from API on component mount
   useEffect(() => {
@@ -76,6 +81,31 @@ export const useMediaState = () => {
     loadMediaData();
   }, []);
 
+  // Load library statistics
+  useEffect(() => {
+    const loadLibraryStats = async () => {
+      try {
+        console.log('Loading library statistics...');
+        const stats = await apiService.getLibraryStats();
+        console.log('Library stats:', stats);
+        
+        if (stats.success) {
+          setLibraryStats({
+            dbFileCount: stats.dbFileCount,
+            movieFolderCount: stats.movieFolderCount,
+            tvFolderCount: stats.tvFolderCount,
+            totalFolders: stats.totalFolders
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load library stats:', err);
+        // Keep default values on error
+      }
+    };
+
+    loadLibraryStats();
+  }, []);
+
   return {
     searchQuery,
     setSearchQuery,
@@ -96,5 +126,6 @@ export const useMediaState = () => {
     setIsMediaScannerOpen,
     isLoading,
     error,
+    libraryStats,
   };
 };
