@@ -3,8 +3,10 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const axios = require('axios');
+const path = require('path');
 
-dotenv.config();
+// Load environment variables from .env file in the backend directory
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -15,6 +17,7 @@ console.log('DB_HOST:', process.env.DB_HOST);
 console.log('DB_USER:', process.env.DB_USER);
 console.log('DB_NAME:', process.env.DB_NAME);
 console.log('DB_PORT:', process.env.DB_PORT);
+console.log('Environment file path:', path.join(__dirname, '.env'));
 
 // Middleware
 app.use(cors());
