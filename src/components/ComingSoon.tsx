@@ -1,8 +1,17 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import { MediaItem } from '@/types/media';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ComingSoonProps {
   mediaData: MediaItem[];
@@ -10,6 +19,26 @@ interface ComingSoonProps {
 }
 
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
+  const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
+  const [mediaToRemove, setMediaToRemove] = useState<MediaItem | null>(null);
+
+  const handleFavoriteClick = (media: MediaItem) => {
+    if (media.isFavorite) {
+      setMediaToRemove(media);
+      setShowRemoveFavoriteDialog(true);
+    } else {
+      onToggleFavorite(media.id);
+    }
+  };
+
+  const handleConfirmRemoveFavorite = () => {
+    if (mediaToRemove) {
+      onToggleFavorite(mediaToRemove.id);
+    }
+    setShowRemoveFavoriteDialog(false);
+    setMediaToRemove(null);
+  };
+
   const getUpcomingMedia = () => {
     const today = new Date();
     return mediaData.filter(media => {
@@ -72,7 +101,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onToggleFavorite(media.id)}
+                onClick={() => handleFavoriteClick(media)}
                 className="p-2 bg-slate-700 hover:bg-blue-600 text-white rounded-full transition-colors"
               >
                 <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -107,7 +136,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onToggleFavorite(media.id)}
+                onClick={() => handleFavoriteClick(media)}
                 className="p-2 bg-slate-700 hover:bg-blue-600 text-white rounded-full transition-colors"
               >
                 <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -119,6 +148,24 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
           </div>
         ))}
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from Favorites?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{mediaToRemove?.title}" from your favorites? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
