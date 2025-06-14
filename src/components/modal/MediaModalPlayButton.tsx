@@ -13,6 +13,11 @@ const MediaModalPlayButton = ({ media }: MediaModalPlayButtonProps) => {
   const [showPlayOptions, setShowPlayOptions] = useState(false);
 
   const getVideoUrl = () => {
+    // Use the actual media file path if available, otherwise fallback to test video
+    if (media.filePath) {
+      return `http://localhost:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
+    }
+    // Fallback to test video for demo purposes
     return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   };
 
@@ -23,18 +28,37 @@ const MediaModalPlayButton = ({ media }: MediaModalPlayButtonProps) => {
 
   const handlePlayInExternal = () => {
     const videoUrl = getVideoUrl();
-    const vlcUrl = `vlc://${videoUrl}`;
     
-    const link = document.createElement('a');
-    link.href = vlcUrl;
-    link.click();
-    
-    setTimeout(() => {
-      const fallbackLink = document.createElement('a');
-      fallbackLink.href = videoUrl;
-      fallbackLink.download = media.title;
-      fallbackLink.click();
-    }, 1000);
+    // For local files, try to open the file path directly
+    if (media.filePath) {
+      const localFilePath = `file://${media.filePath}`;
+      const vlcUrl = `vlc://${localFilePath}`;
+      
+      const link = document.createElement('a');
+      link.href = vlcUrl;
+      link.click();
+      
+      // Also try opening the file directly
+      setTimeout(() => {
+        const fileLink = document.createElement('a');
+        fileLink.href = localFilePath;
+        fileLink.click();
+      }, 1000);
+    } else {
+      // Fallback for remote URLs
+      const vlcUrl = `vlc://${videoUrl}`;
+      
+      const link = document.createElement('a');
+      link.href = vlcUrl;
+      link.click();
+      
+      setTimeout(() => {
+        const fallbackLink = document.createElement('a');
+        fallbackLink.href = videoUrl;
+        fallbackLink.download = media.title;
+        fallbackLink.click();
+      }, 1000);
+    }
     
     setShowPlayOptions(false);
   };

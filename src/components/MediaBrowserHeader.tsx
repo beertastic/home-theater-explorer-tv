@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { Shuffle, RotateCcw, Settings, Calendar } from 'lucide-react';
 import DownloadsManager from './DownloadsManager';
 import FocusableButton from './FocusableButton';
 import LibraryUpdateProgress from './LibraryUpdateProgress';
+import { apiService } from '@/services/apiService';
 
 interface MediaBrowserHeaderProps {
   onRandomSelect: () => void;
@@ -14,6 +16,12 @@ interface MediaBrowserHeaderProps {
   navigationItems: any[];
   focusedIndex: number;
   lastUpdated: string;
+  libraryStats: {
+    dbFileCount: number;
+    movieFolderCount: number;
+    tvFolderCount: number;
+    totalFolders: number;
+  };
 }
 
 const MediaBrowserHeader = ({
@@ -25,16 +33,14 @@ const MediaBrowserHeader = ({
   focusedSection,
   navigationItems,
   focusedIndex,
-  lastUpdated
+  lastUpdated,
+  libraryStats
 }: MediaBrowserHeaderProps) => {
   const [showProgress, setShowProgress] = useState(false);
   const [isUpdateComplete, setIsUpdateComplete] = useState(false);
   const [tvProgress, setTvProgress] = useState(0);
   const [movieProgress, setMovieProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
-  const [tvFolderCount] = useState(143);
-  const [movieFolderCount] = useState(104);
-  const [dbFileCount] = useState(1842);
   const [newFilesFound, setNewFilesFound] = useState(0);
   const [newlyFoundContent, setNewlyFoundContent] = useState<Array<{
     type: 'movie' | 'tv';
@@ -58,7 +64,7 @@ const MediaBrowserHeader = ({
     return date.toLocaleDateString();
   };
 
-  const handleRescanWithProgress = () => {
+  const handleRescanWithProgress = async () => {
     setShowProgress(true);
     setIsUpdateComplete(false);
     setTvProgress(0);
@@ -66,17 +72,7 @@ const MediaBrowserHeader = ({
     setNewFilesFound(0);
     setNewlyFoundContent([]);
     
-    // Fake newly found content
-    const fakeNewContent = [
-      { type: 'movie' as const, title: 'The Matrix Resurrections' },
-      { type: 'tv' as const, title: 'Breaking Bad', season: 3, episode: 7 },
-      { type: 'movie' as const, title: 'Dune: Part Two' },
-      { type: 'tv' as const, title: 'Stranger Things', season: 4, episode: 9 },
-      { type: 'tv' as const, title: 'The Mandalorian', season: 2, episode: 8 },
-      { type: 'movie' as const, title: 'Oppenheimer' },
-      { type: 'tv' as const, title: 'House of the Dragon', season: 1, episode: 10 },
-    ];
-    
+    // Simulate the scan progress with real-time updates
     const steps = [
       { tv: 0, movie: 0, step: 'Initializing scan...' },
       { tv: 10, movie: 5, step: 'Scanning TV show folders...' },
@@ -87,6 +83,17 @@ const MediaBrowserHeader = ({
       { tv: 85, movie: 85, step: 'Processing movie files...' },
       { tv: 95, movie: 95, step: 'Updating metadata...' },
       { tv: 100, movie: 100, step: 'Scan complete!' }
+    ];
+    
+    // Fake newly found content
+    const fakeNewContent = [
+      { type: 'movie' as const, title: 'The Matrix Resurrections' },
+      { type: 'tv' as const, title: 'Breaking Bad', season: 3, episode: 7 },
+      { type: 'movie' as const, title: 'Dune: Part Two' },
+      { type: 'tv' as const, title: 'Stranger Things', season: 4, episode: 9 },
+      { type: 'tv' as const, title: 'The Mandalorian', season: 2, episode: 8 },
+      { type: 'movie' as const, title: 'Oppenheimer' },
+      { type: 'tv' as const, title: 'House of the Dragon', season: 1, episode: 10 },
     ];
     
     let stepIndex = 0;
@@ -173,9 +180,9 @@ const MediaBrowserHeader = ({
         currentStep={currentStep}
         tvProgress={tvProgress}
         movieProgress={movieProgress}
-        tvFolderCount={tvFolderCount}
-        movieFolderCount={movieFolderCount}
-        dbFileCount={dbFileCount}
+        tvFolderCount={libraryStats.tvFolderCount}
+        movieFolderCount={libraryStats.movieFolderCount}
+        dbFileCount={libraryStats.dbFileCount}
         newFilesFound={newFilesFound}
         newlyFoundContent={newlyFoundContent}
         onClose={handleCloseProgress}

@@ -14,9 +14,12 @@ const MediaModalHeader = ({ media, onClose, getPlaceholderImage }: MediaModalHea
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [showPlayOptions, setShowPlayOptions] = useState(false);
 
-  // Sample video URL - in a real app, this would come from your media item
   const getVideoUrl = () => {
-    // Using a sample video for demonstration
+    // Use the actual media file path if available, otherwise fallback to test video
+    if (media.filePath) {
+      return `http://localhost:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
+    }
+    // Fallback to test video for demo purposes
     return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   };
 
@@ -27,21 +30,37 @@ const MediaModalHeader = ({ media, onClose, getPlaceholderImage }: MediaModalHea
 
   const handlePlayInExternal = () => {
     const videoUrl = getVideoUrl();
-    // Try to open with VLC protocol first, fallback to direct download
-    const vlcUrl = `vlc://${videoUrl}`;
     
-    // Create a temporary link to trigger the external app
-    const link = document.createElement('a');
-    link.href = vlcUrl;
-    link.click();
-    
-    // Fallback: also provide direct file access
-    setTimeout(() => {
-      const fallbackLink = document.createElement('a');
-      fallbackLink.href = videoUrl;
-      fallbackLink.download = media.title;
-      fallbackLink.click();
-    }, 1000);
+    // For local files, try to open the file path directly
+    if (media.filePath) {
+      const localFilePath = `file://${media.filePath}`;
+      const vlcUrl = `vlc://${localFilePath}`;
+      
+      const link = document.createElement('a');
+      link.href = vlcUrl;
+      link.click();
+      
+      // Also try opening the file directly
+      setTimeout(() => {
+        const fileLink = document.createElement('a');
+        fileLink.href = localFilePath;
+        fileLink.click();
+      }, 1000);
+    } else {
+      // Fallback for remote URLs
+      const vlcUrl = `vlc://${videoUrl}`;
+      
+      const link = document.createElement('a');
+      link.href = vlcUrl;
+      link.click();
+      
+      setTimeout(() => {
+        const fallbackLink = document.createElement('a');
+        fallbackLink.href = videoUrl;
+        fallbackLink.download = media.title;
+        fallbackLink.click();
+      }, 1000);
+    }
     
     setShowPlayOptions(false);
   };

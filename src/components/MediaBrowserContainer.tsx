@@ -31,6 +31,7 @@ const MediaBrowserContainer = () => {
     setIsMediaScannerOpen,
     isLoading,
     error,
+    libraryStats,
   } = useMediaState();
 
   // Add last updated state
@@ -226,6 +227,7 @@ const MediaBrowserContainer = () => {
         navigationItems={navigationItems}
         focusedIndex={focusedIndex}
         lastUpdated={lastUpdated}
+        libraryStats={libraryStats}
       />
 
       <ComingSoon 
