@@ -48,4 +48,5 @@ export interface MediaItem {
   isFavorite?: boolean;
   nextEpisodeDate?: string; // For TV shows, when the next episode is expected
   nextEpisodeName?: string; // New field for the next episode name
+  filePath?: string; // Add filePath property for streaming media files
 }
