@@ -39,15 +39,13 @@ const SingleMediaVerification = ({ verificationResult, isLoading, onRefresh }: S
           <span className={getStatusColor(verificationResult.status)}>
             {getStatusText(verificationResult.status)}
           </span>
-          {onRefresh && (
-            <button
-              onClick={onRefresh}
-              className="p-1 hover:bg-slate-700 rounded transition-colors"
-              title="Refresh verification status"
-            >
-              <RefreshCw className="h-3 w-3 text-gray-400 hover:text-white" />
-            </button>
-          )}
+          <button
+            onClick={onRefresh}
+            className="p-1 hover:bg-slate-700 rounded transition-colors ml-1"
+            title="Refresh verification status"
+          >
+            <RefreshCw className="h-3 w-3 text-gray-400 hover:text-white" />
+          </button>
           {verificationResult.status === 'file-missing' && (
             <span className="text-gray-400 text-xs">
               Expected: {verificationResult.filePath}
