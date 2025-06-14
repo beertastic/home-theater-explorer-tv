@@ -23,14 +23,24 @@ console.log('Environment file path:', path.join(__dirname, '.env'));
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-const db = mysql.createConnection({
+// Debug: Log the exact connection config being used
+const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306
-});
+};
+
+console.log('MySQL Connection Config:');
+console.log('host:', dbConfig.host);
+console.log('user:', dbConfig.user);
+console.log('database:', dbConfig.database);
+console.log('port:', dbConfig.port);
+console.log('password:', dbConfig.password ? 'SET' : 'NOT SET');
+
+// Database connection
+const db = mysql.createConnection(dbConfig);
 
 db.connect((err) => {
   if (err) {
