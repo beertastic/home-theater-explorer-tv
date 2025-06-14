@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import MediaBrowserHeader from './MediaBrowserHeader';
 import MediaFilters from './MediaFilters';
@@ -182,6 +181,23 @@ const MediaBrowser = () => {
     });
   };
 
+  const handleUpdateMetadata = (mediaId: string, newMetadata: any) => {
+    setMediaData(prevData => 
+      prevData.map(item => 
+        item.id === mediaId ? { ...item, ...newMetadata } : item
+      )
+    );
+    
+    if (selectedMedia && selectedMedia.id === mediaId) {
+      setSelectedMedia(prev => prev ? { ...prev, ...newMetadata } : null);
+    }
+
+    toast({
+      title: "Metadata updated",
+      description: `Updated metadata for ${newMetadata.title}`,
+    });
+  };
+
   const filteredMedia = useMemo(() => {
     let filtered = mediaData.filter(item => {
       const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -303,6 +319,7 @@ const MediaBrowser = () => {
           onUpdateWatchStatus={handleUpdateWatchStatus}
           onUpdateEpisodeStatus={handleUpdateEpisodeStatus}
           onToggleFavorite={handleToggleFavorite}
+          onUpdateMetadata={handleUpdateMetadata}
         />
       )}
     </div>

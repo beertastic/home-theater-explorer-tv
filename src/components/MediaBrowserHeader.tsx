@@ -48,7 +48,7 @@ const MediaBrowserHeader = ({
           className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
         >
           <Search className="h-5 w-5" />
-          Scan for New Media
+          Verify Show Data
         </FocusableButton>
         
         <FocusableButton
@@ -59,7 +59,7 @@ const MediaBrowserHeader = ({
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
         >
           <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-          {isScanning ? 'Scanning...' : 'Quick Rescan'}
+          {isScanning ? 'Scanning...' : 'Update Library'}
         </FocusableButton>
       </div>
     </div>
