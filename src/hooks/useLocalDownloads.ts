@@ -49,6 +49,7 @@ const mockLocalFiles: LocalFile[] = [
 export const useLocalDownloads = () => {
   const [downloads, setDownloads] = useState<DownloadProgress[]>([]);
   const [localFiles, setLocalFiles] = useState<LocalFile[]>(mockLocalFiles);
+  const [downloadTimers, setDownloadTimers] = useState<Map<string, NodeJS.Timeout>>(new Map());
   const { toast } = useToast();
 
   // Check if file exists locally
@@ -71,7 +72,12 @@ export const useLocalDownloads = () => {
       return;
     }
 
-    // Add to downloads list
+    // Check if already downloading
+    if (downloads.some(d => d.mediaId === mediaId)) {
+      return;
+    }
+
+    // Add to downloads list with 0% progress
     setDownloads(prev => [...prev, {
       mediaId,
       title,
@@ -79,77 +85,94 @@ export const useLocalDownloads = () => {
       status: 'downloading'
     }]);
 
-    try {
-      // Simulate download with progress updates
-      const response = await fetch(fileUrl);
-      if (!response.ok) throw new Error('Download failed');
+    toast({
+      title: "Download started",
+      description: `Downloading ${title}...`,
+    });
 
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      let loaded = 0;
+    // Simulate realistic download progress
+    let progress = 0;
+    const updateProgress = () => {
+      progress += Math.random() * 15 + 5; // Random increment between 5-20%
+      
+      if (progress >= 100) {
+        progress = 100;
+        
+        // Complete the download
+        setDownloads(prev => prev.map(d => 
+          d.mediaId === mediaId ? { ...d, progress: 100, status: 'completed' as const } : d
+        ));
 
-      const reader = response.body?.getReader();
-      const chunks: Uint8Array[] = [];
+        // Add to local files
+        const localFile: LocalFile = {
+          mediaId,
+          title,
+          filePath: `offline://${mediaId}`,
+          fileSize: Math.floor(Math.random() * 2000000000) + 1000000000, // Random size 1-3GB
+          downloadDate: new Date().toISOString(),
+          lastAccessed: new Date().toISOString()
+        };
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        setLocalFiles(prev => [...prev, localFile]);
 
-          chunks.push(value);
-          loaded += value.length;
+        // Remove from downloads after a short delay
+        setTimeout(() => {
+          setDownloads(prev => prev.filter(d => d.mediaId !== mediaId));
+        }, 2000);
 
-          const progress = total > 0 ? Math.round((loaded / total) * 100) : 0;
-          
-          setDownloads(prev => prev.map(d => 
-            d.mediaId === mediaId ? { ...d, progress } : d
-          ));
-        }
+        // Clear timer
+        setDownloadTimers(prev => {
+          const newMap = new Map(prev);
+          const timer = newMap.get(mediaId);
+          if (timer) {
+            clearInterval(timer);
+            newMap.delete(mediaId);
+          }
+          return newMap;
+        });
+
+        toast({
+          title: "Download complete!",
+          description: `${title} is now available offline`,
+        });
+      } else {
+        // Update progress
+        setDownloads(prev => prev.map(d => 
+          d.mediaId === mediaId ? { ...d, progress: Math.floor(progress) } : d
+        ));
       }
+    };
 
-      // Create blob and store reference
-      const blob = new Blob(chunks);
-      const fileSize = blob.size;
-      
-      // In a real implementation, you'd store this in IndexedDB
-      // For now, we'll simulate successful storage
-      const localFile: LocalFile = {
-        mediaId,
-        title,
-        filePath: `offline://${mediaId}`,
-        fileSize,
-        downloadDate: new Date().toISOString(),
-        lastAccessed: new Date().toISOString()
-      };
+    // Start progress simulation
+    const timer = setInterval(updateProgress, 800); // Update every 800ms
+    setDownloadTimers(prev => new Map(prev).set(mediaId, timer));
 
-      setLocalFiles(prev => [...prev, localFile]);
-      
-      setDownloads(prev => prev.map(d => 
-        d.mediaId === mediaId ? { ...d, status: 'completed' as const } : d
-      ));
-
-      toast({
-        title: "Download complete!",
-        description: `${title} is now available offline`,
-      });
-
-    } catch (error) {
-      setDownloads(prev => prev.map(d => 
-        d.mediaId === mediaId ? { ...d, status: 'error' as const } : d
-      ));
-
-      toast({
-        title: "Download failed",
-        description: `Failed to download ${title}`,
-        variant: "destructive",
-      });
-    }
-  }, [hasLocalCopy, toast]);
+  }, [hasLocalCopy, downloads, toast]);
 
   // Cancel download
   const cancelDownload = useCallback((mediaId: string) => {
+    // Clear timer
+    setDownloadTimers(prev => {
+      const newMap = new Map(prev);
+      const timer = newMap.get(mediaId);
+      if (timer) {
+        clearInterval(timer);
+        newMap.delete(mediaId);
+      }
+      return newMap;
+    });
+
+    // Remove from downloads
     setDownloads(prev => prev.filter(d => d.mediaId !== mediaId));
-  }, []);
+
+    const download = downloads.find(d => d.mediaId === mediaId);
+    if (download) {
+      toast({
+        title: "Download cancelled",
+        description: `Cancelled download of ${download.title}`,
+      });
+    }
+  }, [downloads, toast]);
 
   // Delete local file
   const deleteLocalFile = useCallback((mediaId: string) => {
