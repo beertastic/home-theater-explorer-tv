@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Play, Star, Calendar, Clock, Tag, Plus, Eye, EyeOff, PlayCircle, Monitor, Volume2, Subtitles, Heart } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import EpisodeList from './EpisodeList';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface MediaModalProps {
   media: MediaItem;
@@ -12,6 +23,21 @@ interface MediaModalProps {
 }
 
 const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus, onToggleFavorite }: MediaModalProps) => {
+  const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
+
+  const handleFavoriteClick = () => {
+    if (media.isFavorite) {
+      setShowRemoveFavoriteDialog(true);
+    } else {
+      onToggleFavorite(media.id);
+    }
+  };
+
+  const handleConfirmRemoveFavorite = () => {
+    onToggleFavorite(media.id);
+    setShowRemoveFavoriteDialog(false);
+  };
+
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -124,12 +150,28 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
             <div className="lg:w-2/3">
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-4xl font-bold text-white">{media.title}</h1>
-                <button
-                  onClick={() => onToggleFavorite(media.id)}
-                  className="p-2 hover:bg-slate-800 rounded-full transition-colors"
-                >
-                  <Heart className={`h-6 w-6 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-                </button>
+                <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
+                  <button
+                    onClick={handleFavoriteClick}
+                    className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  >
+                    <Heart className={`h-6 w-6 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+                  </button>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove from Favorites?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to remove "{media.title}" from your favorites? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               
               {/* Watch Status */}
