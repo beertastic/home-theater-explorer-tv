@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Search, Check, AlertTriangle, Calendar, Star, Info } from 'lucide-react';
+import { X, Search, Check, AlertTriangle, Calendar, Star, Info, Zap } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
 import { apiService, TMDBSearchResult } from '@/services/apiService';
@@ -41,6 +41,7 @@ const MetadataVerificationModal = ({
   const [searchResults, setSearchResults] = useState<MetadataMatch[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MetadataMatch | null>(detectedMetadata);
+  const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
 
   if (!isOpen) return null;
@@ -78,6 +79,11 @@ const MetadataVerificationModal = ({
         const convertedResults = response.results.map(convertTMDBToMetadataMatch);
         setSearchResults(convertedResults);
         console.log('Converted search results:', convertedResults);
+        
+        // Auto-select the first result as "best guess"
+        if (convertedResults.length > 0) {
+          setSelectedMatch(convertedResults[0]);
+        }
       } else {
         setSearchResults([]);
         toast({
@@ -92,6 +98,76 @@ const MetadataVerificationModal = ({
       toast({
         title: "Search failed",
         description: "Could not search for metadata. Please check your backend connection.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddToLibrary = async () => {
+    if (!selectedMatch) return;
+    
+    setIsAdding(true);
+    try {
+      console.log('Adding to library:', selectedMatch);
+      const response = await apiService.addMediaFromTMDB(
+        parseInt(selectedMatch.id), 
+        selectedMatch.type
+      );
+      console.log('Add media response:', response);
+      
+      toast({
+        title: "Added to library!",
+        description: `${selectedMatch.title} has been added to your library`,
+      });
+      
+      onAcceptMetadata(selectedMatch);
+      onClose();
+    } catch (error) {
+      console.error('Error adding to library:', error);
+      toast({
+        title: "Failed to add to library",
+        description: "Could not add media to your library. Please check your backend connection.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleBestGuess = async () => {
+    if (!folderName) return;
+    
+    // Use folder name as search query for best guess
+    setSearchQuery(folderName);
+    setIsSearching(true);
+    
+    try {
+      console.log('Best guess search for:', folderName);
+      const response = await apiService.searchTMDB(folderName);
+      
+      if (response.results && response.results.length > 0) {
+        const bestGuess = convertTMDBToMetadataMatch(response.results[0]);
+        setSelectedMatch(bestGuess);
+        setSearchResults([bestGuess]);
+        
+        toast({
+          title: "Best guess selected",
+          description: `Selected: ${bestGuess.title} (${bestGuess.year})`,
+        });
+      } else {
+        toast({
+          title: "No matches found",
+          description: "Could not find any matches for the folder name",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Best guess search error:', error);
+      toast({
+        title: "Search failed",
+        description: "Could not perform best guess search",
         variant: "destructive"
       });
     } finally {
@@ -167,6 +243,24 @@ const MetadataVerificationModal = ({
               </div>
             </div>
           )}
+
+          {/* Quick actions */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Zap className="h-5 w-5 text-yellow-400" />
+              Quick Actions
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={handleBestGuess}
+                disabled={isSearching}
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-slate-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+              >
+                <Zap className="h-4 w-4" />
+                Best Guess
+              </button>
+            </div>
+          </div>
 
           {/* Search section */}
           <div className="mb-6">
@@ -246,12 +340,12 @@ const MetadataVerificationModal = ({
               Skip This Item
             </button>
             <button
-              onClick={handleAccept}
-              disabled={!selectedMatch}
+              onClick={handleAddToLibrary}
+              disabled={!selectedMatch || isAdding}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-gray-400 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
             >
               <Check className="h-5 w-5" />
-              Accept & Add to Library
+              {isAdding ? 'Adding...' : 'Add to Library'}
             </button>
           </div>
         </div>
