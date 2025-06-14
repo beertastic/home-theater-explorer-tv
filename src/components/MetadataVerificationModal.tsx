@@ -42,6 +42,7 @@ const MetadataVerificationModal = ({
   const [isSearching, setIsSearching] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MetadataMatch | null>(detectedMetadata);
   const [isAdding, setIsAdding] = useState(false);
+  const [folderPath, setFolderPath] = useState(''); // Add state for folder path
   const { toast } = useToast();
 
   if (!isOpen) return null;
@@ -110,10 +111,11 @@ const MetadataVerificationModal = ({
     
     setIsAdding(true);
     try {
-      console.log('Adding to library:', selectedMatch);
+      console.log('Adding to library:', selectedMatch, 'with folder path:', folderPath);
       const response = await apiService.addMediaFromTMDB(
         parseInt(selectedMatch.id), 
-        selectedMatch.type
+        selectedMatch.type,
+        folderPath || folderName // Use folderPath if set, otherwise use folderName
       );
       console.log('Add media response:', response);
       
@@ -205,6 +207,24 @@ const MetadataVerificationModal = ({
         </div>
 
         <div className="p-6">
+          {/* Folder path input */}
+          <div className="mb-6">
+            <label htmlFor="folderPath" className="block text-sm font-medium text-white mb-2">
+              Media Folder Path (Optional)
+            </label>
+            <input
+              id="folderPath"
+              type="text"
+              placeholder={`/path/to/media/folders/${folderName}`}
+              value={folderPath}
+              onChange={(e) => setFolderPath(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+            />
+            <p className="text-gray-400 text-sm mt-1">
+              Specify the full path to link this media with actual files on your system
+            </p>
+          </div>
+
           {/* Auto-detected section */}
           {detectedMetadata && (
             <div className="mb-8">

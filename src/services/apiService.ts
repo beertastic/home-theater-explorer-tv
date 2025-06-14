@@ -18,6 +18,7 @@ export interface ApiMediaItem {
   total_episodes?: number;
   last_watched?: string;
   is_favorite?: boolean;
+  file_path?: string; // Add file_path to the API interface
 }
 
 export interface ApiResponse<T> {
@@ -86,14 +87,39 @@ export const apiService = {
     return response.json();
   },
 
-  // Add media from TMDB
-  async addMediaFromTMDB(tmdbId: number, type: string) {
+  // Add media from TMDB with file path linking
+  async addMediaFromTMDB(tmdbId: number, type: string, folderPath?: string) {
+    const body: any = { tmdbId, type };
+    if (folderPath) {
+      body.folderPath = folderPath;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/media/add-from-tmdb`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tmdbId, type }),
+      body: JSON.stringify(body),
     });
     if (!response.ok) throw new Error('Failed to add media from TMDB');
+    return response.json();
+  },
+
+  // Link existing media with file paths
+  async linkMediaFiles(mediaId: string, filePath: string) {
+    const response = await fetch(`${API_BASE_URL}/media/${mediaId}/link-files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    });
+    if (!response.ok) throw new Error('Failed to link media files');
+    return response.json();
+  },
+
+  // Scan and link all media files
+  async scanAndLinkFiles(): Promise<{ success: boolean; linkedCount: number; message: string }> {
+    const response = await fetch(`${API_BASE_URL}/media/scan-and-link`, {
+      method: 'POST',
+    });
+    if (!response.ok) throw new Error('Failed to scan and link files');
     return response.json();
   },
 

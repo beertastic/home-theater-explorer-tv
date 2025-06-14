@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { MediaItem } from '@/types/media';
 import { apiService, ApiMediaItem } from '@/services/apiService';
@@ -18,6 +19,7 @@ const convertApiMediaToMediaItem = (apiMedia: ApiMediaItem): MediaItem => {
     dateAdded: apiMedia.dateAdded,
     watchStatus: apiMedia.watch_status,
     isFavorite: apiMedia.is_favorite || false,
+    filePath: apiMedia.file_path, // Map the file_path from API
     progress: apiMedia.progress_percent ? {
       currentEpisode: apiMedia.current_episode,
       totalEpisodes: apiMedia.total_episodes,
@@ -66,7 +68,7 @@ export const useMediaState = () => {
         console.log('API Response:', response);
         
         const convertedMedia = response.data.map(convertApiMediaToMediaItem);
-        console.log('Converted media:', convertedMedia);
+        console.log('Converted media with file paths:', convertedMedia);
         
         setMediaData(convertedMedia);
       } catch (err) {
