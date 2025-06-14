@@ -18,29 +18,218 @@ A modern, keyboard-navigable media center built with React, designed for NAS dep
 - 🔄 Automatic media library scanning
 - 📝 Metadata verification with TMDB integration
 
-## Development Setup
+## Complete Setup Guide (For Beginners)
 
 ### Prerequisites
-- Node.js & npm ([install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
 
-### Local Development
-```sh
-# Clone the repository
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
+Before starting, you'll need to install these tools on your computer:
 
-# Install dependencies
-npm i
+1. **Node.js** (JavaScript runtime)
+   - Visit [nodejs.org](https://nodejs.org/)
+   - Download and install the LTS version
+   - Verify installation: Open terminal/command prompt and type `node --version`
 
-# Start development server
-npm run dev
+2. **Git** (version control)
+   - Visit [git-scm.com](https://git-scm.com/)
+   - Download and install for your operating system
+   - Verify installation: `git --version`
+
+3. **MySQL** (database)
+   - **Windows**: Download MySQL Installer from [mysql.com](https://dev.mysql.com/downloads/installer/)
+   - **macOS**: `brew install mysql` (requires [Homebrew](https://brew.sh/))
+   - **Linux**: `sudo apt install mysql-server` (Ubuntu/Debian)
+
+### Step 1: Get the Code
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
+   cd YOUR_REPOSITORY_NAME
+   ```
+
+2. **Install frontend dependencies:**
+   ```bash
+   npm install
+   ```
+
+### Step 2: Set Up the Database
+
+1. **Start MySQL service:**
+   - **Windows**: MySQL should start automatically after installation
+   - **macOS**: `brew services start mysql`
+   - **Linux**: `sudo systemctl start mysql`
+
+2. **Access MySQL:**
+   ```bash
+   mysql -u root -p
+   ```
+   (Enter your MySQL root password when prompted)
+
+3. **Create the database:**
+   ```sql
+   CREATE DATABASE media_center;
+   CREATE USER 'media_user'@'localhost' IDENTIFIED BY 'your_secure_password';
+   GRANT ALL PRIVILEGES ON media_center.* TO 'media_user'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+
+4. **Import the database schema:**
+   ```bash
+   mysql -u media_user -p media_center < database/mysql-schema.sql
+   ```
+
+### Step 3: Set Up the Backend API
+
+1. **Navigate to the backend folder:**
+   ```bash
+   cd backend
+   ```
+
+2. **Install backend dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Create environment configuration:**
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Edit the .env file:**
+   Open the `.env` file in a text editor and update these values:
+   ```env
+   # Database Configuration
+   DB_HOST=localhost
+   DB_USER=media_user
+   DB_PASSWORD=your_secure_password
+   DB_NAME=media_center
+   DB_PORT=3306
+
+   # TMDB API Key (get from https://www.themoviedb.org/settings/api)
+   TMDB_API_KEY=your_tmdb_api_key_here
+
+   # Server Configuration
+   PORT=3001
+   NODE_ENV=development
+
+   # Media Library Path (where your movie/TV files are stored)
+   MEDIA_LIBRARY_PATH=/path/to/your/media/files
+   ```
+
+5. **Get a TMDB API Key:**
+   - Go to [themoviedb.org](https://www.themoviedb.org/)
+   - Create a free account
+   - Go to Settings → API
+   - Request an API key
+   - Copy the key and paste it in your `.env` file
+
+6. **Test the backend:**
+   ```bash
+   npm start
+   ```
+   The server should start on port 3001. You can test it by visiting:
+   `http://localhost:3001/api/tmdb/test`
+
+### Step 4: Set Up the Frontend
+
+1. **Open a new terminal** (keep the backend running in the first terminal)
+
+2. **Navigate back to the project root:**
+   ```bash
+   cd ..
+   ```
+
+3. **Start the frontend development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser:**
+   Visit `http://localhost:8080` to see your media center!
+
+### Step 5: Organize Your Media Files
+
+Create a folder structure like this for your media files:
+
+```
+/your/media/folder/
+├── movies/
+│   ├── The Matrix (1999)/
+│   │   ├── The Matrix (1999).mkv
+│   │   └── poster.jpg
+│   └── Inception (2010)/
+│       ├── Inception (2010).mp4
+│       └── poster.jpg
+└── tv-shows/
+    ├── Stranger Things/
+    │   ├── Season 1/
+    │   │   ├── S01E01 - Chapter One.mkv
+    │   │   └── S01E02 - Chapter Two.mkv
+    │   └── poster.jpg
+    └── Breaking Bad/
+        ├── Season 1/
+        │   └── S01E01 - Pilot.mkv
+        └── poster.jpg
 ```
 
-### Edit Options
-- **Use Lovable**: Visit the [Lovable Project](https://lovable.dev/projects/49cdfc12-4339-4e44-bb3b-1a9adbf467b6)
-- **Use your IDE**: Clone and push changes to sync with Lovable
-- **GitHub Codespaces**: Launch directly from the repository
-- **Direct GitHub editing**: Edit files through the web interface
+Update the `MEDIA_LIBRARY_PATH` in your `.env` file to point to this folder.
+
+### Step 6: Add Media to Your Library
+
+1. **Use the web interface:**
+   - Go to your media center in the browser
+   - Use the search function to find movies/TV shows
+   - Add them to your library from TMDB
+
+2. **Or add manually to the database:**
+   - Use the API endpoints to add media programmatically
+
+### Troubleshooting
+
+**Backend won't start:**
+- Check if MySQL is running: `sudo systemctl status mysql` (Linux) or `brew services list | grep mysql` (macOS)
+- Verify database credentials in `.env` file
+- Check if port 3001 is available
+
+**Frontend won't start:**
+- Make sure you ran `npm install` in the project root
+- Check if port 8080 is available
+- Try deleting `node_modules` and running `npm install` again
+
+**Can't connect to database:**
+- Verify MySQL is running
+- Check username/password in `.env` file
+- Make sure the database `media_center` exists
+
+**TMDB API not working:**
+- Verify your API key is correct in the `.env` file
+- Test the API endpoint: `http://localhost:3001/api/tmdb/test`
+- Check if you have internet connection
+
+### Development Commands
+
+```bash
+# Start frontend development server
+npm run dev
+
+# Start backend server
+cd backend && npm start
+
+# Start backend with auto-reload during development
+cd backend && npm run dev
+
+# Build frontend for production
+npm run build
+```
+
+### Next Steps
+
+Once everything is running:
+1. Add your media files to the organized folder structure
+2. Use the web interface to search and add movies/TV shows
+3. Set up automatic scanning (see Production Deployment section)
+4. Configure for TV/remote control use
 
 ## Production Deployment on Raspberry Pi
 
@@ -377,6 +566,7 @@ sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 - `GET /api/genres` - Get all genres
 - `GET /api/tmdb/search?query=matrix&type=movie` - Search TMDB
 - `POST /api/media/add-from-tmdb` - Add media from TMDB
+- `GET /api/tmdb/test` - Test TMDB API connection
 
 ## Keyboard Navigation
 
