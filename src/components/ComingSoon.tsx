@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play, Download, Trash2, X, Tv } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
@@ -70,6 +71,19 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     cancelDownload(media.id);
   };
 
+  const getNewlyAddedMedia = () => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30); // Show items added in the last 30 days
+    
+    return mediaData.filter(media => {
+      // Only show unwatched or in-progress media
+      if (media.watchStatus === 'watched') return false;
+      
+      const dateAdded = new Date(media.dateAdded);
+      return dateAdded >= cutoff;
+    }).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+  };
+
   const getUpcomingMedia = () => {
     const today = new Date();
     return mediaData.filter(media => {
@@ -77,43 +91,43 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       if (media.watchStatus === 'watched') return false;
       const nextAirDate = new Date(media.nextEpisodeDate);
       return nextAirDate >= today;
-    }).sort((a, b) => new Date(b.nextEpisodeDate!).getTime() - new Date(a.nextEpisodeDate!).getTime());
+    }).sort((a, b) => new Date(a.nextEpisodeDate!).getTime() - new Date(b.nextEpisodeDate!).getTime());
   };
 
-  const getNewlyAddedMedia = () => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 7); // Last 7 days
-    return mediaData.filter(media => {
-      if (media.watchStatus === 'watched') return false;
-      const dateAdded = new Date(media.dateAdded);
-      return dateAdded >= cutoff;
-    }).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
-  };
-
-  const getAllSortedMedia = () => {
+  const getRecentlyAddedMedia = () => {
     const newlyAddedMedia = getNewlyAddedMedia();
     const upcomingMedia = getUpcomingMedia();
     
-    return [...newlyAddedMedia, ...upcomingMedia].slice(0, 6);
+    // Prioritize newly added, then upcoming
+    const combined = [...newlyAddedMedia];
+    
+    // Add upcoming media if we don't have enough newly added
+    if (combined.length < 6) {
+      const remainingSlots = 6 - combined.length;
+      const upcomingToAdd = upcomingMedia.slice(0, remainingSlots);
+      combined.push(...upcomingToAdd);
+    }
+    
+    return combined.slice(0, 6);
   };
 
   const getSeasonEpisodeInfo = (media: MediaItem) => {
     if (media.type !== 'tv' || !media.progress) return null;
     
-    // Generate fake season/episode info based on progress
     const currentEpisode = media.progress.currentEpisode || 1;
-    const season = Math.floor((currentEpisode - 1) / 12) + 1; // Assume 12 episodes per season
+    const season = Math.floor((currentEpisode - 1) / 12) + 1;
     const episodeInSeason = ((currentEpisode - 1) % 12) + 1;
     
     return {
       season: season,
-      episode: episodeInSeason + 1 // Next episode
+      episode: episodeInSeason + 1
     };
   };
 
-  const sortedMedia = getAllSortedMedia();
+  const recentMedia = getRecentlyAddedMedia();
 
-  if (sortedMedia.length === 0) {
+  // Don't show the section if there's no recent media
+  if (recentMedia.length === 0) {
     return null;
   }
 
@@ -121,12 +135,13 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Coming Soon & New Arrivals</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Recently Added</h2>
+          <p className="text-gray-400">New additions to your library</p>
         </div>
       </div>
 
       <div className="space-y-4">
-        {sortedMedia.map((media) => {
+        {recentMedia.map((media) => {
           const isNew = getNewlyAddedMedia().some(newMedia => newMedia.id === media.id);
           const hasDownload = hasLocalCopy(media.id);
           const downloadProgress = getDownloadProgress(media.id);
@@ -142,7 +157,6 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white text-lg truncate">{media.title}</h3>
                 
-                {/* Episode name for TV shows with season/episode info */}
                 {media.type === 'tv' && media.nextEpisodeName && (
                   <div className="flex items-center gap-1 text-blue-300 text-sm mt-1">
                     <Tv className="h-3 w-3" />
@@ -161,12 +175,12 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                   {isNew ? (
                     <>
                       <Clock className="h-4 w-4" />
-                      {media.duration}
+                      Added {new Date(media.dateAdded).toLocaleDateString()}
                     </>
                   ) : (
                     <>
                       <Calendar className="h-4 w-4" />
-                      {new Date(media.nextEpisodeDate!).toLocaleDateString()}
+                      {media.nextEpisodeDate ? new Date(media.nextEpisodeDate).toLocaleDateString() : 'No upcoming episodes'}
                     </>
                   )}
                 </p>
@@ -174,7 +188,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${
                     isNew ? 'bg-green-600' : 'bg-blue-600'
                   }`}>
-                    {isNew ? 'NEW' : 'UPCOMING'}
+                    {isNew ? 'RECENTLY ADDED' : 'UPCOMING'}
                   </span>
                   <MediaVerificationStatus mediaId={media.id} />
                   {hasDownload && (
@@ -238,7 +252,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       {/* Video Player */}
       {playingMedia && (
         <VideoPlayer
-          src={`/api/video/${playingMedia.id}`}
+          src={playingMedia.filePath ? `http://localhost:3001/api/media/stream/${encodeURIComponent(playingMedia.filePath)}` : `/api/video/${playingMedia.id}`}
           title={playingMedia.title}
           onClose={() => setPlayingMedia(null)}
         />
