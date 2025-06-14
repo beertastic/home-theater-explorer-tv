@@ -19,6 +19,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
   const [textTracks, setTextTracks] = useState<TextTrack[]>([]);
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState(-1);
   const [videoError, setVideoError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const video = videoRef.current;
@@ -36,13 +37,38 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
       }
     };
 
-    const handleError = () => {
-      console.error('Video failed to load:', src);
+    const handleError = (e: Event) => {
+      console.error('Video error event:', e);
+      console.error('Video src:', src);
+      console.error('Video error code:', video.error?.code);
+      console.error('Video error message:', video.error?.message);
+      
+      let errorMsg = 'Video file could not be loaded.';
+      if (video.error) {
+        switch (video.error.code) {
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMsg = 'Network error - check if the server is running and accessible.';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMsg = 'Video format not supported or file is corrupted.';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMsg = 'Video source not found or format not supported.';
+            break;
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMsg = 'Video playback was aborted.';
+            break;
+        }
+      }
+      
+      setErrorMessage(errorMsg);
       setVideoError(true);
     };
 
     const handleCanPlay = () => {
+      console.log('Video can play - src:', src);
       setVideoError(false);
+      setErrorMessage('');
     };
 
     video.addEventListener('timeupdate', updateTime);
@@ -72,6 +98,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
     } else {
       video.play().catch(err => {
         console.error('Error playing video:', err);
+        setErrorMessage('Failed to start video playback.');
         setVideoError(true);
       });
     }
@@ -149,9 +176,10 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
   if (videoError) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-lg mx-4">
           <h2 className="text-white text-2xl mb-4">Video Unavailable</h2>
-          <p className="text-gray-300 mb-6">The video file could not be loaded. It may not be available on the server.</p>
+          <p className="text-gray-300 mb-2">{errorMessage}</p>
+          <p className="text-gray-400 text-sm mb-6">Source: {src}</p>
           <div className="space-x-4">
             <button
               onClick={handleCloseClick}
@@ -161,7 +189,9 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
             </button>
             <button
               onClick={() => {
+                console.log('Retrying video load for:', src);
                 setVideoError(false);
+                setErrorMessage('');
                 if (videoRef.current) {
                   videoRef.current.load();
                 }

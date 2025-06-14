@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Star, Calendar, Clock, Play, Download, Trash2, X, Tv } from 'lucide-react';
+import { Star, Calendar, Clock, Play, Download, Trash2, X, Tv, AlertTriangle } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
@@ -19,9 +18,10 @@ import {
 interface ComingSoonProps {
   mediaData: MediaItem[];
   onToggleFavorite: (id: string) => void;
+  isUsingMockData?: boolean;
 }
 
-const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
+const ComingSoon = ({ mediaData, onToggleFavorite, isUsingMockData = false }: ComingSoonProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   const [mediaToRemove, setMediaToRemove] = useState<MediaItem | null>(null);
@@ -51,7 +51,10 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   };
 
   const handleDownload = (media: MediaItem) => {
-    startDownload(media.id, media.title, `/api/video/${media.id}`);
+    const downloadUrl = isUsingMockData 
+      ? `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath || media.id)}`
+      : `http://192.168.1.94:3001/api/media/stream/${media.id}`;
+    startDownload(media.id, media.title, downloadUrl);
   };
 
   const handleRemoveDownload = (media: MediaItem) => {
@@ -124,6 +127,15 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     };
   };
 
+  const getVideoUrl = (media: MediaItem) => {
+    if (isUsingMockData && media.filePath) {
+      // For mock data, try the file path first
+      return `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
+    }
+    // For real API data, use the streaming endpoint
+    return `http://192.168.1.94:3001/api/media/stream/${media.id}`;
+  };
+
   const recentMedia = getRecentlyAddedMedia();
 
   // Don't show the section if there's no recent media
@@ -137,6 +149,12 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Recently Added</h2>
           <p className="text-gray-400">New additions to your library</p>
+          {isUsingMockData && (
+            <div className="flex items-center gap-2 mt-2 text-yellow-400 text-sm">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Using demo data - API server not available</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -190,7 +208,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                   }`}>
                     {isNew ? 'RECENTLY ADDED' : 'UPCOMING'}
                   </span>
-                  <MediaVerificationStatus mediaId={media.id} />
+                  {!isUsingMockData && <MediaVerificationStatus mediaId={media.id} />}
                   {hasDownload && (
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-700 text-white">
                       DOWNLOADED
@@ -252,7 +270,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       {/* Video Player */}
       {playingMedia && (
         <VideoPlayer
-          src={playingMedia.filePath ? `http://localhost:3001/api/media/stream/${encodeURIComponent(playingMedia.filePath)}` : `/api/video/${playingMedia.id}`}
+          src={getVideoUrl(playingMedia)}
           title={playingMedia.title}
           onClose={() => setPlayingMedia(null)}
         />
