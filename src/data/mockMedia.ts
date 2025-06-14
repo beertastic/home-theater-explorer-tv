@@ -1,3 +1,4 @@
+
 import { MediaItem } from '@/types/media';
 
 export const mockMedia: MediaItem[] = [
@@ -217,5 +218,4 @@ export const mockMedia: MediaItem[] = [
   }
 ];
 
-export { mockMedia };
 export type { MediaItem };
