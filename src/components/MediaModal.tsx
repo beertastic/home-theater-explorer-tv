@@ -5,6 +5,7 @@ import { MediaItem } from '@/types/media';
 import EpisodeList from './EpisodeList';
 import MediaModalHeader from './modal/MediaModalHeader';
 import MediaModalInfo from './modal/MediaModalInfo';
+import MediaVerificationStatus from './MediaVerificationStatus';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,6 +110,12 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
 
         {/* Content */}
         <div className="p-8">
+          {/* Verification Status - Prominent at top */}
+          <div className="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+            <h3 className="text-lg font-semibold text-white mb-2">Server Status</h3>
+            <MediaVerificationStatus mediaId={media.id} />
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Poster */}
             <div className="lg:w-1/3">

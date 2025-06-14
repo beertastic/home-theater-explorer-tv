@@ -1,166 +1,131 @@
+
 import React, { forwardRef } from 'react';
-import { Play, Star, Clock, Calendar, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
+import { Play, Heart, Calendar, Star, Eye, EyeOff } from 'lucide-react';
 import { MediaItem } from '@/types/media';
-import { cn } from '@/lib/utils';
+import MediaVerificationStatus from './MediaVerificationStatus';
 
 interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
-  showDateAdded?: boolean;
+  showDateAdded: boolean;
   onToggleFavorite: (id: string) => void;
   isFocused?: boolean;
 }
 
-const MediaCard = forwardRef<HTMLDivElement, MediaCardProps>(({ 
-  media, 
-  onClick, 
-  showDateAdded = false, 
-  onToggleFavorite,
-  isFocused = false 
-}, ref) => {
-  const formatDateAdded = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Added today';
-    if (diffDays <= 7) return `Added ${diffDays} days ago`;
-    if (diffDays <= 30) return `Added ${Math.ceil(diffDays / 7)} weeks ago`;
-    return `Added ${date.toLocaleDateString()}`;
-  };
+const MediaCard = forwardRef<HTMLDivElement, MediaCardProps>(
+  ({ media, onClick, showDateAdded, onToggleFavorite, isFocused = false }, ref) => {
+    const getPlaceholderImage = (width: number, height: number, text: string) => {
+      const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
+      const colorIndex = Math.abs(text.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
+      const color = colors[colorIndex];
+      return `https://via.placeholder.com/${width}x${height}/${color}/ffffff?text=${encodeURIComponent(text.substring(0, 20))}`;
+    };
 
-  const getWatchStatusBadge = () => {
-    switch (media.watchStatus) {
-      case 'watched':
-        return (
-          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-600 text-white flex items-center gap-1">
-            <Eye className="h-3 w-3" />
-            WATCHED
-          </span>
-        );
-      case 'in-progress':
-        return (
-          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white flex items-center gap-1">
-            <PlayCircle className="h-3 w-3" />
-            IN PROGRESS
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
+    const formatDateAdded = (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    };
 
-  const getPlaceholderImage = () => {
-    const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
-    const colorIndex = Math.abs(media.title.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
-    const color = colors[colorIndex];
-    return `https://via.placeholder.com/300x450/${color}/ffffff?text=${encodeURIComponent(media.title.substring(0, 20))}`;
-  };
+    const getWatchStatusIcon = (status: string) => {
+      switch (status) {
+        case 'watched':
+          return <Eye className="h-4 w-4 text-green-400" />;
+        case 'in-progress':
+          return <Play className="h-4 w-4 text-blue-400 fill-current" />;
+        default:
+          return <EyeOff className="h-4 w-4 text-gray-400" />;
+      }
+    };
 
-  return (
-    <div
-      ref={ref}
-      onClick={onClick}
-      className={cn(
-        "group relative cursor-pointer transform transition-all duration-300 hover:scale-105 hover:z-10 outline-none",
-        isFocused && "ring-4 ring-blue-400/60 ring-offset-2 ring-offset-slate-900 scale-105 z-20"
-      )}
-      tabIndex={isFocused ? 0 : -1}
-      role="button"
-      aria-label={`Play ${media.title}`}
-    >
-      {/* Thumbnail */}
-      <div className="relative aspect-[2/3] bg-slate-800 rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/25 transition-all duration-300">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-        <img
-          src={media.thumbnail || getPlaceholderImage()}
-          alt={media.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (target.src !== getPlaceholderImage()) {
-              target.src = getPlaceholderImage();
-            }
-          }}
-        />
-        
-        {/* Progress bar for in-progress items */}
-        {media.watchStatus === 'in-progress' && media.progress?.progressPercent && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50 z-20">
-            <div 
-              className="h-full bg-blue-500 transition-all duration-300"
-              style={{ width: `${media.progress.progressPercent}%` }}
-            />
+    const handleFavoriteClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onToggleFavorite(media.id);
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={`group bg-slate-800 rounded-xl overflow-hidden transition-all duration-300 hover:bg-slate-700 hover:scale-105 hover:shadow-2xl cursor-pointer ${
+          isFocused ? 'ring-2 ring-blue-400 scale-105' : ''
+        }`}
+        onClick={onClick}
+      >
+        {/* Poster Image */}
+        <div className="relative aspect-[2/3] overflow-hidden">
+          <img
+            src={media.thumbnail || getPlaceholderImage(300, 450, media.title)}
+            alt={media.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              const placeholder = getPlaceholderImage(300, 450, media.title);
+              if (target.src !== placeholder) {
+                target.src = placeholder;
+              }
+            }}
+          />
+          
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <Play className="h-12 w-12 text-white fill-current drop-shadow-lg" />
           </div>
-        )}
-        
-        {/* Play overlay */}
-        <div className={cn(
-          "absolute inset-0 flex items-center justify-center transition-opacity duration-300 z-20",
-          isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        )}>
-          <div className="bg-blue-600 rounded-full p-4 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
-            <Play className="h-8 w-8 text-white fill-current" />
+
+          {/* Favorite Button */}
+          <button
+            onClick={handleFavoriteClick}
+            className="absolute top-3 right-3 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/70"
+          >
+            <Heart className={`h-4 w-4 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-white'}`} />
+          </button>
+
+          {/* Watch Status */}
+          <div className="absolute top-3 left-3 p-2 bg-black/50 rounded-full">
+            {getWatchStatusIcon(media.watchStatus)}
+          </div>
+
+          {/* Rating */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-black/70 rounded-full text-sm">
+            <Star className="h-3 w-3 text-yellow-400 fill-current" />
+            <span className="text-white font-medium">{media.rating}</span>
           </div>
         </div>
 
-        {/* Type badge */}
-        <div className="absolute top-3 right-3 z-20">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-            media.type === 'movie' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
-          }`}>
-            {media.type === 'movie' ? 'Movie' : 'TV'}
-          </span>
-        </div>
-
-        {/* Watch status or Recently added badge */}
-        <div className="absolute top-3 left-3 z-20">
-          {showDateAdded ? (
-            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-600 text-white flex items-center gap-1">
-              <Plus className="h-3 w-3" />
-              NEW
-            </span>
-          ) : (
-            getWatchStatusBadge()
-          )}
-        </div>
-
-        {/* Bottom info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-          <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2 group-hover:text-blue-300 transition-colors">
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="text-white font-semibold mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors">
             {media.title}
           </h3>
-          <div className="flex items-center gap-2 text-xs text-gray-300">
-            {showDateAdded ? (
-              <>
-                <Plus className="h-3 w-3" />
-                <span>{formatDateAdded(media.dateAdded)}</span>
-              </>
-            ) : media.watchStatus === 'in-progress' && media.progress ? (
-              <>
-                <PlayCircle className="h-3 w-3" />
-                <span>
-                  {media.type === 'tv' 
-                    ? `Ep ${media.progress.currentEpisode}/${media.progress.totalEpisodes}`
-                    : `${media.progress.progressPercent}%`
-                  }
-                </span>
-              </>
-            ) : (
-              <>
-                <Calendar className="h-3 w-3" />
-                <span>{media.year}</span>
-                <Star className="h-3 w-3 text-yellow-400 fill-current ml-2" />
-                <span>{media.rating}</span>
-              </>
-            )}
+          
+          <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+            <span>{media.year}</span>
+            <span className="capitalize">{media.type}</span>
           </div>
+
+          <div className="flex items-center justify-between text-sm text-gray-400 mb-3">
+            <span>{media.duration}</span>
+            <span>{media.genre.slice(0, 2).join(', ')}</span>
+          </div>
+
+          {/* Verification Status */}
+          <div className="mb-3">
+            <MediaVerificationStatus mediaId={media.id} />
+          </div>
+
+          {showDateAdded && (
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Calendar className="h-3 w-3" />
+              <span>Added {formatDateAdded(media.dateAdded)}</span>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 MediaCard.displayName = 'MediaCard';
 

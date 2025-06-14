@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { RefreshCw, Sparkles, Info } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import FocusableButton from './FocusableButton';
 
 interface MediaBrowserHeaderProps {
   onRandomSelect: () => void;
-  onOpenScanner: () => void;
   onRescan: () => void;
   isScanning: boolean;
   actionRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
@@ -16,7 +15,6 @@ interface MediaBrowserHeaderProps {
 
 const MediaBrowserHeader = ({
   onRandomSelect,
-  onOpenScanner,
   onRescan,
   isScanning,
   actionRefs,
@@ -47,20 +45,9 @@ const MediaBrowserHeader = ({
         <FocusableButton
           ref={(el) => actionRefs.current[1] = el}
           variant="action"
-          onClick={onOpenScanner}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
-          className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
-        >
-          <Info className="h-5 w-5" />
-          Verify Metadata
-        </FocusableButton>
-
-        <FocusableButton
-          ref={(el) => actionRefs.current[2] = el}
-          variant="action"
           onClick={onRescan}
           disabled={isScanning}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
+          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
           className={isScanning 
             ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
             : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
