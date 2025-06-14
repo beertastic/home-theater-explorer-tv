@@ -15,12 +15,8 @@ const MediaModalHeader = ({ media, onClose, getPlaceholderImage }: MediaModalHea
   const [showPlayOptions, setShowPlayOptions] = useState(false);
 
   const getVideoUrl = () => {
-    // Use the actual media file path if available, otherwise fallback to test video
-    if (media.filePath) {
-      return `http://localhost:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
-    }
-    // Fallback to test video for demo purposes
-    return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    // Always use the streaming endpoint for the actual media file
+    return `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath || media.id)}`;
   };
 
   const handlePlayInBrowser = () => {
