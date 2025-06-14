@@ -1,0 +1,254 @@
+
+import React, { useState } from 'react';
+import { X, Search, Check, AlertTriangle, Calendar, Star, Info } from 'lucide-react';
+import { MediaItem } from '@/types/media';
+import { useToast } from '@/hooks/use-toast';
+
+interface MetadataMatch {
+  id: string;
+  title: string;
+  year: number;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  vote_average: number;
+  type: 'movie' | 'tv';
+  first_air_date?: string;
+  release_date?: string;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+}
+
+interface MetadataVerificationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  folderName: string;
+  detectedMetadata: MetadataMatch | null;
+  onAcceptMetadata: (metadata: MetadataMatch) => void;
+  onRejectAndSearch: () => void;
+}
+
+const MetadataVerificationModal = ({
+  isOpen,
+  onClose,
+  folderName,
+  detectedMetadata,
+  onAcceptMetadata,
+  onRejectAndSearch
+}: MetadataVerificationModalProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<MetadataMatch[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<MetadataMatch | null>(detectedMetadata);
+  const { toast } = useToast();
+
+  if (!isOpen) return null;
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      // Mock search results - in real implementation, this would call TMDB/TVDB API
+      const mockResults: MetadataMatch[] = [
+        {
+          id: '1',
+          title: 'Doctor Who (2005)',
+          year: 2005,
+          overview: 'The adventures of the Doctor, a time-traveling alien from the planet Gallifrey.',
+          poster_path: '/poster1.jpg',
+          backdrop_path: '/backdrop1.jpg',
+          vote_average: 8.2,
+          type: 'tv',
+          first_air_date: '2005-03-26',
+          number_of_seasons: 13,
+          number_of_episodes: 154
+        },
+        {
+          id: '2',
+          title: 'Doctor Who (1963)',
+          year: 1963,
+          overview: 'The original long-running British science fiction television series.',
+          poster_path: '/poster2.jpg',
+          backdrop_path: '/backdrop2.jpg',
+          vote_average: 8.4,
+          type: 'tv',
+          first_air_date: '1963-11-23',
+          number_of_seasons: 26,
+          number_of_episodes: 695
+        }
+      ];
+      setSearchResults(mockResults);
+    } catch (error) {
+      toast({
+        title: "Search failed",
+        description: "Could not search for metadata. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAccept = () => {
+    if (selectedMatch) {
+      onAcceptMetadata(selectedMatch);
+      onClose();
+    }
+  };
+
+  const handleReject = () => {
+    onRejectAndSearch();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+      <div className="bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Verify Metadata</h2>
+            <p className="text-gray-400 mt-1">Folder: <span className="text-blue-400">{folderName}</span></p>
+          </div>
+          <button
+            onClick={onClose}
+            className="bg-slate-800 hover:bg-slate-700 rounded-full p-2 transition-colors"
+          >
+            <X className="h-6 w-6 text-white" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* Auto-detected section */}
+          {detectedMetadata && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                <h3 className="text-xl font-semibold text-white">Auto-detected Metadata</h3>
+              </div>
+              
+              <div className="bg-slate-800 rounded-xl p-4 border-2 border-yellow-400/30">
+                <div className="flex gap-4">
+                  <img
+                    src={detectedMetadata.poster_path || '/placeholder.svg'}
+                    alt={detectedMetadata.title}
+                    className="w-24 h-36 object-cover rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2">{detectedMetadata.title}</h4>
+                    <div className="flex items-center gap-4 text-sm text-gray-300 mb-2">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{detectedMetadata.year}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-400" />
+                        <span>{detectedMetadata.vote_average}/10</span>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        detectedMetadata.type === 'movie' ? 'bg-red-600' : 'bg-green-600'
+                      }`}>
+                        {detectedMetadata.type === 'movie' ? 'Movie' : 'TV Show'}
+                      </span>
+                    </div>
+                    <p className="text-gray-300 text-sm line-clamp-3">{detectedMetadata.overview}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Search section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              Search for Correct Match
+            </h3>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Search for the correct title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+              <button
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-gray-400 text-white rounded-xl font-semibold transition-colors"
+              >
+                {isSearching ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+          </div>
+
+          {/* Search results */}
+          {searchResults.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-md font-semibold text-white mb-3">Search Results</h4>
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {searchResults.map((result) => (
+                  <div
+                    key={result.id}
+                    onClick={() => setSelectedMatch(result)}
+                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                      selectedMatch?.id === result.id
+                        ? 'bg-blue-600/20 border-2 border-blue-500'
+                        : 'bg-slate-800 hover:bg-slate-700 border-2 border-transparent'
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      <img
+                        src={result.poster_path || '/placeholder.svg'}
+                        alt={result.title}
+                        className="w-16 h-24 object-cover rounded"
+                      />
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-white">{result.title}</h5>
+                        <div className="flex items-center gap-3 text-sm text-gray-300 mt-1">
+                          <span>{result.year}</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 text-yellow-400" />
+                            <span>{result.vote_average}/10</span>
+                          </div>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            result.type === 'movie' ? 'bg-red-600' : 'bg-green-600'
+                          }`}>
+                            {result.type === 'movie' ? 'Movie' : 'TV Show'}
+                          </span>
+                        </div>
+                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">{result.overview}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex justify-end gap-4 pt-4 border-t border-slate-700">
+            <button
+              onClick={handleReject}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
+            >
+              Skip This Item
+            </button>
+            <button
+              onClick={handleAccept}
+              disabled={!selectedMatch}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-gray-400 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
+            >
+              <Check className="h-5 w-5" />
+              Accept & Add to Library
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MetadataVerificationModal;

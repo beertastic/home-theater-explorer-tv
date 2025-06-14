@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
 import MediaPagination from './MediaPagination';
+import MediaScanner from './MediaScanner';
 import { mockMedia } from '@/data/mockMedia';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,7 @@ const MediaBrowser = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(24); // 24 items per page for good grid layout
   const [isRandomSelectorOpen, setIsRandomSelectorOpen] = useState(false);
+  const [isMediaScannerOpen, setIsMediaScannerOpen] = useState(false);
   const { toast } = useToast();
 
   const handleRescan = async () => {
@@ -35,6 +36,19 @@ const MediaBrowser = () => {
         description: "Found 0 new items", // In real implementation, this would show actual count
       });
     }, 3000);
+  };
+
+  const handleOpenScanner = () => {
+    setIsMediaScannerOpen(true);
+  };
+
+  const handleScanComplete = (addedCount: number) => {
+    setIsMediaScannerOpen(false);
+    toast({
+      title: "Library scan complete!",
+      description: `Added ${addedCount} new items to your library`,
+    });
+    // In real implementation, this would refresh the media data
   };
 
   const handleUpdateWatchStatus = (id: string, status: 'unwatched' | 'in-progress' | 'watched') => {
@@ -203,6 +217,15 @@ const MediaBrowser = () => {
             Random Pick
           </button>
 
+          {/* Metadata Scanner Button */}
+          <button
+            onClick={handleOpenScanner}
+            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-green-600/25"
+          >
+            <Info className="h-5 w-5" />
+            Verify Metadata
+          </button>
+
           {/* Update/Rescan Button */}
           <button
             onClick={handleRescan}
@@ -290,6 +313,13 @@ const MediaBrowser = () => {
         {activeFilter === 'recently-added' && ' (sorted by date added)'}
         {activeFilter === 'in-progress' && ' (sorted by last watched)'}
       </div>
+
+      {/* Media Scanner Modal */}
+      <MediaScanner
+        isOpen={isMediaScannerOpen}
+        onClose={() => setIsMediaScannerOpen(false)}
+        onScanComplete={handleScanComplete}
+      />
 
       {/* Random Movie Selector Modal */}
       <RandomMovieSelector 
