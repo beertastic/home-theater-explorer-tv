@@ -1,4 +1,3 @@
-
 # Media Center - Personal Media Library
 
 A modern, keyboard-navigable media center built with React, designed for NAS deployment and 10-foot UI experiences.
@@ -215,7 +214,76 @@ Recommended directory structure:
         └── poster.jpg
 ```
 
-#### 8. Create System Service
+#### 8. Set Up Automated Library Scanning
+
+Create a library scan script:
+```bash
+sudo nano /home/pi/scan-media-library.sh
+```
+
+Add the script content:
+```bash
+#!/bin/bash
+
+# Media Library Scanner Script
+# Logs to /var/log/media-scanner.log
+
+LOG_FILE="/var/log/media-scanner.log"
+API_URL="http://localhost:3001/api"
+
+echo "$(date): Starting media library scan..." >> $LOG_FILE
+
+# Option 1: Call API endpoint (if you have a scan endpoint)
+# curl -X POST "$API_URL/media/scan" >> $LOG_FILE 2>&1
+
+# Option 2: Use Node.js script to scan filesystem
+cd /home/pi/media-center-api
+/usr/bin/node -e "
+const fs = require('fs');
+const path = require('path');
+const mediaPath = process.env.MEDIA_LIBRARY_PATH || '/media';
+
+console.log('Scanning media library at:', mediaPath);
+// Add your scanning logic here
+" >> $LOG_FILE 2>&1
+
+echo "$(date): Media library scan completed." >> $LOG_FILE
+```
+
+Make it executable:
+```bash
+chmod +x /home/pi/scan-media-library.sh
+```
+
+Set up cron job to run every 6 hours:
+```bash
+crontab -e
+```
+
+Add this line:
+```bash
+# Run media library scan every 6 hours
+0 */6 * * * /home/pi/scan-media-library.sh
+```
+
+Alternative: For specific times (6 AM, 12 PM, 6 PM, 12 AM):
+```bash
+0 6,12,18,0 * * * /home/pi/scan-media-library.sh
+```
+
+Check cron job status:
+```bash
+# Check if cron service is running
+sudo systemctl status cron
+
+# View cron logs
+sudo tail -f /var/log/cron.log
+
+# View your custom scan log
+tail -f /var/log/media-scanner.log
+```
+
+#### 9. Create System Service
 ```bash
 sudo nano /etc/systemd/system/media-center-api.service
 ```
@@ -246,7 +314,7 @@ sudo systemctl start media-center-api
 sudo systemctl status media-center-api
 ```
 
-#### 9. Configure Firewall (Optional)
+#### 10. Configure Firewall (Optional)
 ```bash
 sudo ufw allow 22    # SSH
 sudo ufw allow 80    # HTTP
