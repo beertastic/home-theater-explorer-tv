@@ -12,18 +12,22 @@ interface ComingSoonProps {
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   // Get favorite TV shows with upcoming episodes
   const upcomingShows = mediaData
-    .filter(item => 
-      item.type === 'tv' && 
-      item.isFavorite && 
-      item.nextEpisodeDate &&
-      isAfter(parseISO(item.nextEpisodeDate), new Date())
-    )
+    .filter(item => {
+      console.log(`Checking item: ${item.title}, type: ${item.type}, isFavorite: ${item.isFavorite}, nextEpisodeDate: ${item.nextEpisodeDate}`);
+      return item.type === 'tv' && 
+             item.isFavorite && 
+             item.nextEpisodeDate &&
+             isAfter(parseISO(item.nextEpisodeDate), new Date());
+    })
     .sort((a, b) => 
       parseISO(a.nextEpisodeDate!).getTime() - parseISO(b.nextEpisodeDate!).getTime()
     )
     .slice(0, 8); // Show max 8 shows
 
+  console.log(`Found ${upcomingShows.length} upcoming shows:`, upcomingShows.map(s => s.title));
+
   if (upcomingShows.length === 0) {
+    console.log('No upcoming shows found, not rendering Coming Soon section');
     return null;
   }
 
