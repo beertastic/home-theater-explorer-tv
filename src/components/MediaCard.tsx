@@ -44,6 +44,14 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
     }
   };
 
+  // Generate a more reliable placeholder image
+  const getPlaceholderImage = () => {
+    const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
+    const colorIndex = Math.abs(media.title.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
+    const color = colors[colorIndex];
+    return `https://via.placeholder.com/300x450/${color}/ffffff?text=${encodeURIComponent(media.title.substring(0, 20))}`;
+  };
+
   return (
     <div
       onClick={onClick}
@@ -53,12 +61,14 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
       <div className="relative aspect-[2/3] bg-slate-800 rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/25 transition-all duration-300">
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
         <img
-          src={media.thumbnail}
+          src={media.thumbnail || getPlaceholderImage()}
           alt={media.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = `https://via.placeholder.com/300x450/334155/ffffff?text=${encodeURIComponent(media.title)}`;
+            if (target.src !== getPlaceholderImage()) {
+              target.src = getPlaceholderImage();
+            }
           }}
         />
         

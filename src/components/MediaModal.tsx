@@ -38,6 +38,14 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
     setShowRemoveFavoriteDialog(false);
   };
 
+  // Generate placeholder images
+  const getPlaceholderImage = (width: number, height: number, text: string) => {
+    const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
+    const colorIndex = Math.abs(text.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
+    const color = colors[colorIndex];
+    return `https://via.placeholder.com/${width}x${height}/${color}/ffffff?text=${encodeURIComponent(text.substring(0, 20))}`;
+  };
+
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -95,12 +103,15 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
         <div className="relative">
           <div className="aspect-video bg-slate-800 rounded-t-2xl overflow-hidden">
             <img
-              src={media.backdrop}
+              src={media.backdrop || getPlaceholderImage(800, 450, media.title)}
               alt={media.title}
               className="w-full h-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = `https://via.placeholder.com/800x450/334155/ffffff?text=${encodeURIComponent(media.title)}`;
+                const placeholder = getPlaceholderImage(800, 450, media.title);
+                if (target.src !== placeholder) {
+                  target.src = placeholder;
+                }
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
@@ -136,12 +147,15 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
             {/* Poster */}
             <div className="lg:w-1/3">
               <img
-                src={media.thumbnail}
+                src={media.thumbnail || getPlaceholderImage(300, 450, media.title)}
                 alt={media.title}
                 className="w-full rounded-xl shadow-lg"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = `https://via.placeholder.com/300x450/334155/ffffff?text=${encodeURIComponent(media.title)}`;
+                  const placeholder = getPlaceholderImage(300, 450, media.title);
+                  if (target.src !== placeholder) {
+                    target.src = placeholder;
+                  }
                 }}
               />
             </div>
