@@ -1,3 +1,4 @@
+
 import { MediaItem } from '@/types/media';
 
 export const mockMedia: MediaItem[] = [
@@ -144,8 +145,8 @@ export const mockMedia: MediaItem[] = [
     rating: 8.6,
     duration: '1 Season',
     description: 'Orphaned at a young age, Beth Harmon discovers she has an amazing flair for chess.',
-    thumbnail: 'https://images.unsplash.com/photo-1604971349434-54999545e994?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1604971349434-54999545e994?w=800&h=450&fit=crop',
+    thumbnail: 'https://via.placeholder.com/300x450/64748b/ffffff?text=The+Queens+Gambit',
+    backdrop: 'https://via.placeholder.com/800x450/64748b/ffffff?text=The+Queens+Gambit',
     genre: ['Drama'],
     dateAdded: '2023-12-20',
     watchStatus: 'watched',
