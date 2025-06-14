@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
-import { Heart, Edit3 } from 'lucide-react';
+import { Heart, Edit3, Download, Play, Wifi, WifiOff } from 'lucide-react';
 import { MediaItem } from '@/types/media';
+import { useLocalDownloads } from '@/hooks/useLocalDownloads';
 import EpisodeList from './EpisodeList';
 import MediaModalHeader from './modal/MediaModalHeader';
 import MediaModalInfo from './modal/MediaModalInfo';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import MetadataEditor from './MetadataEditor';
+import VideoPlayer from './VideoPlayer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,14 @@ interface MediaModalProps {
 const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus, onToggleFavorite, onUpdateMetadata }: MediaModalProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+
+  const {
+    hasLocalCopy,
+    getLocalFile,
+    startDownload,
+    getDownloadProgress,
+  } = useLocalDownloads();
 
   const handleFavoriteClick = () => {
     if (media.isFavorite) {
@@ -102,6 +111,20 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
     return codes.map(code => languageNames[code] || code).join(', ');
   };
 
+  const handlePlay = () => {
+    setShowVideoPlayer(true);
+  };
+
+  const handleDownload = () => {
+    // Simulate file URL - in real implementation, this would come from your NAS
+    const fileUrl = `/api/media/${media.id}/download`;
+    startDownload(media.id, media.title, fileUrl);
+  };
+
+  const isDownloading = getDownloadProgress(media.id)?.status === 'downloading';
+  const isOfflineAvailable = hasLocalCopy(media.id);
+  const localFile = getLocalFile(media.id);
+
   return (
     <>
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -149,16 +172,54 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
                   }}
                 />
                 
-                {/* Favorite button */}
-                <button
-                  onClick={handleFavoriteClick}
-                  className="w-full mt-4 p-2 hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <Heart className={`h-6 w-6 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-                  <span className="text-white">
-                    {media.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-                  </span>
-                </button>
+                {/* Action buttons */}
+                <div className="space-y-3 mt-4">
+                  {/* Play button */}
+                  <button
+                    onClick={handlePlay}
+                    className="w-full flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold"
+                  >
+                    <Play className="h-5 w-5 fill-current" />
+                    {isOfflineAvailable ? 'Play Offline' : 'Play'}
+                    {isOfflineAvailable ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}
+                  </button>
+
+                  {/* Download button */}
+                  {!isOfflineAvailable && !isDownloading && (
+                    <button
+                      onClick={handleDownload}
+                      className="w-full flex items-center justify-center gap-2 p-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download for Offline
+                    </button>
+                  )}
+
+                  {isDownloading && (
+                    <div className="w-full p-2 bg-yellow-600/20 border border-yellow-600 text-yellow-300 rounded-xl text-center">
+                      <Download className="h-4 w-4 inline mr-2" />
+                      Downloading...
+                    </div>
+                  )}
+
+                  {isOfflineAvailable && localFile && (
+                    <div className="w-full p-2 bg-green-600/20 border border-green-600 text-green-300 rounded-xl text-center text-sm">
+                      <WifiOff className="h-4 w-4 inline mr-2" />
+                      Available Offline • {(localFile.fileSize / (1024 * 1024)).toFixed(1)} MB
+                    </div>
+                  )}
+
+                  {/* Favorite button */}
+                  <button
+                    onClick={handleFavoriteClick}
+                    className="w-full p-2 hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Heart className={`h-6 w-6 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+                    <span className="text-white">
+                      {media.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                    </span>
+                  </button>
+                </div>
               </div>
 
               <MediaModalInfo 
@@ -200,6 +261,15 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Video Player */}
+      {showVideoPlayer && (
+        <VideoPlayer
+          src={isOfflineAvailable && localFile ? localFile.filePath : `/api/media/${media.id}/stream`}
+          title={media.title}
+          onClose={() => setShowVideoPlayer(false)}
+        />
+      )}
 
       {/* Metadata Editor */}
       {onUpdateMetadata && (

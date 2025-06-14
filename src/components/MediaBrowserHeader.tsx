@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { Shuffle, RefreshCw, Search } from 'lucide-react';
+import { Shuffle, RotateCcw, Settings, Calendar } from 'lucide-react';
+import DownloadsManager from './DownloadsManager';
 import FocusableButton from './FocusableButton';
 
 interface MediaBrowserHeaderProps {
@@ -12,71 +12,80 @@ interface MediaBrowserHeaderProps {
   focusedSection: string;
   navigationItems: any[];
   focusedIndex: number;
-  lastUpdated?: string;
+  lastUpdated: string;
 }
 
-const MediaBrowserHeader = ({ 
-  onRandomSelect, 
-  onRescan, 
+const MediaBrowserHeader = ({
+  onRandomSelect,
+  onRescan,
   onOpenScanner,
-  isScanning, 
-  actionRefs, 
-  focusedSection, 
-  navigationItems, 
+  isScanning,
+  actionRefs,
+  focusedSection,
+  navigationItems,
   focusedIndex,
   lastUpdated
 }: MediaBrowserHeaderProps) => {
-  const formatLastUpdated = (dateString?: string) => {
-    if (!dateString) return '';
+  const formatLastUpdated = (dateString: string) => {
     const date = new Date(dateString);
-    return `(${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    return date.toLocaleDateString();
   };
 
   return (
-    <div className="flex items-center justify-between mb-8">
-      <div>
-        <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
-        <p className="text-gray-400">Browse and manage your movies and TV shows</p>
-      </div>
-      
-      <div className="flex gap-3">
-        <FocusableButton
-          onClick={onRandomSelect}
-          ref={(el) => (actionRefs.current[0] = el)}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-0'}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-        >
-          <Shuffle className="h-5 w-5" />
-          Random
-        </FocusableButton>
-        
-        <FocusableButton
-          onClick={onOpenScanner}
-          ref={(el) => (actionRefs.current[1] = el)}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
-        >
-          <Search className="h-5 w-5" />
-          Verify Show Data
-        </FocusableButton>
-        
-        <FocusableButton
-          onClick={onRescan}
-          disabled={isScanning}
-          ref={(el) => (actionRefs.current[2] = el)}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
-          className="flex flex-col items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-            {isScanning ? 'Scanning...' : 'Update Library'}
+    <div className="mb-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-2">Media Center</h1>
+          <div className="flex items-center gap-2 text-gray-400 text-sm">
+            <Calendar className="h-4 w-4" />
+            <span>Last updated {formatLastUpdated(lastUpdated)}</span>
           </div>
-          {lastUpdated && !isScanning && (
-            <span className="text-xs text-gray-300 font-normal">
-              {formatLastUpdated(lastUpdated)}
-            </span>
-          )}
-        </FocusableButton>
+        </div>
+        
+        <div className="flex gap-3">
+          <DownloadsManager />
+          
+          <FocusableButton
+            ref={(el) => actionRefs.current[0] = el}
+            variant="action"
+            onClick={onRandomSelect}
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-0'}
+          >
+            <Shuffle className="h-4 w-4" />
+            Random
+          </FocusableButton>
+          
+          <FocusableButton
+            ref={(el) => actionRefs.current[1] = el}
+            variant="action"
+            onClick={onRescan}
+            disabled={isScanning}
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
+          >
+            <RotateCcw className={`h-4 w-4 ${isScanning ? 'animate-spin' : ''}`} />
+            {isScanning ? 'Scanning...' : 'Rescan'}
+          </FocusableButton>
+          
+          <FocusableButton
+            ref={(el) => actionRefs.current[2] = el}
+            variant="action"
+            onClick={onOpenScanner}
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </FocusableButton>
+        </div>
       </div>
     </div>
   );
