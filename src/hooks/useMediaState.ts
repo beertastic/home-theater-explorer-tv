@@ -6,7 +6,7 @@ import { mockMedia } from '@/data/mockMedia';
 export const useMediaState = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress' | 'favorites'>('all');
   const [isScanning, setIsScanning] = useState(false);
   const [mediaData, setMediaData] = useState<MediaItem[]>(mockMedia);
   const [currentPage, setCurrentPage] = useState(1);

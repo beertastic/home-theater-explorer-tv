@@ -6,8 +6,8 @@ import FocusableButton from './FocusableButton';
 interface MediaFiltersProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  activeFilter: 'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress';
-  onFilterChange: (filter: 'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress') => void;
+  activeFilter: 'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress' | 'favorites';
+  onFilterChange: (filter: 'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress' | 'favorites') => void;
   searchRef: React.RefObject<HTMLInputElement>;
   filterRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
   focusedSection: string;
@@ -35,7 +35,8 @@ const MediaFilters = ({
     { key: 'in-progress', label: 'In Progress' },
     { key: 'recently-added', label: 'Recently Added' },
     { key: 'movie', label: `Movies (${movieCount})` },
-    { key: 'tv', label: `TV Shows (${tvShowCount})` }
+    { key: 'tv', label: `TV Shows (${tvShowCount})` },
+    { key: 'favorites', label: 'Favorites' }
   ];
 
   const getFilterLabel = () => {
@@ -44,6 +45,8 @@ const MediaFilters = ({
         return 'Recently Added';
       case 'in-progress':
         return 'Continue Watching';
+      case 'favorites':
+        return 'Favorites';
       default:
         return null;
     }
@@ -55,6 +58,8 @@ const MediaFilters = ({
         return 'Latest additions to your media library';
       case 'in-progress':
         return 'Pick up where you left off';
+      case 'favorites':
+        return 'Your favorite movies and TV shows';
       default:
         return null;
     }

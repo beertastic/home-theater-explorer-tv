@@ -1,3 +1,4 @@
+
 import React, { useMemo, useRef, useEffect } from 'react';
 import MediaBrowserHeader from './MediaBrowserHeader';
 import MediaFilters from './MediaFilters';
@@ -141,6 +142,9 @@ const MediaBrowserContainer = () => {
           break;
         case 'in-progress':
           matchesFilter = item.watchStatus === 'in-progress';
+          break;
+        case 'favorites':
+          matchesFilter = item.isFavorite === true;
           break;
         case 'movie':
         case 'tv':
