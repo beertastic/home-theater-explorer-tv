@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
-import { FolderOpen, Database, CheckCircle, Tv, Film, Separator } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { FolderOpen, Database, CheckCircle, Tv, Film } from 'lucide-react';
 
 interface LibraryUpdateProgressProps {
   isVisible: boolean;
