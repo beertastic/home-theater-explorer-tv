@@ -38,6 +38,35 @@ const tmdbApi = axios.create({
   }
 });
 
+// Test TMDB API connection
+app.get('/api/tmdb/test', async (req, res) => {
+  try {
+    console.log('Testing TMDB API connection...');
+    console.log('API Key:', process.env.TMDB_API_KEY ? 'Present' : 'Missing');
+    
+    // Test with a simple configuration request
+    const response = await tmdbApi.get('/configuration');
+    
+    res.json({
+      success: true,
+      message: 'TMDB API connection successful',
+      apiKey: process.env.TMDB_API_KEY ? 'Present' : 'Missing',
+      data: {
+        imageBaseUrl: response.data.images.secure_base_url,
+        posterSizes: response.data.images.poster_sizes
+      }
+    });
+  } catch (error) {
+    console.error('TMDB API test failed:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'TMDB API connection failed',
+      error: error.message,
+      apiKey: process.env.TMDB_API_KEY ? 'Present' : 'Missing'
+    });
+  }
+});
+
 // Routes
 
 // Get all media with pagination
