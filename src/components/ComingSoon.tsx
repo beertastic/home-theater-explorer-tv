@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import { Heart, Calendar, Clock } from 'lucide-react';
+import { Heart, Calendar, Clock, Plus } from 'lucide-react';
 import { MediaItem } from '@/types/media';
-import { format, parseISO, isAfter } from 'date-fns';
+import { format, parseISO, isAfter, isWithinInterval, subDays } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,20 +26,35 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const [selectedShowTitle, setSelectedShowTitle] = useState<string>('');
 
   // Memoize the expensive filtering operation to prevent unnecessary re-renders
-  const upcomingShows = useMemo(() => {
-    const shows = mediaData
+  const { upcomingShows, recentShows } = useMemo(() => {
+    const now = new Date();
+    const twoDaysAgo = subDays(now, 2);
+
+    // Get upcoming episodes from favorite TV shows
+    const upcoming = mediaData
       .filter(item => {
         return item.type === 'tv' && 
                item.isFavorite && 
                item.nextEpisodeDate &&
-               isAfter(parseISO(item.nextEpisodeDate), new Date());
+               isAfter(parseISO(item.nextEpisodeDate), now);
       })
       .sort((a, b) => 
         parseISO(a.nextEpisodeDate!).getTime() - parseISO(b.nextEpisodeDate!).getTime()
       )
-      .slice(0, 8); // Show max 8 shows
+      .slice(0, 4); // Show max 4 upcoming shows
 
-    return shows;
+    // Get recently added shows (last 2 days)
+    const recent = mediaData
+      .filter(item => {
+        const dateAdded = parseISO(item.dateAdded);
+        return isWithinInterval(dateAdded, { start: twoDaysAgo, end: now });
+      })
+      .sort((a, b) => 
+        parseISO(b.dateAdded).getTime() - parseISO(a.dateAdded).getTime()
+      )
+      .slice(0, 4); // Show max 4 recent shows
+
+    return { upcomingShows: upcoming, recentShows: recent };
   }, [mediaData]);
 
   const handleFavoriteClick = (showId: string, showTitle: string, isFavorite: boolean) => {
@@ -59,7 +74,9 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     setSelectedShowTitle('');
   };
 
-  if (upcomingShows.length === 0) {
+  const allItems = [...recentShows.map(item => ({ ...item, isRecent: true })), ...upcomingShows.map(item => ({ ...item, isRecent: false }))];
+
+  if (allItems.length === 0) {
     return null;
   }
 
@@ -68,32 +85,64 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Heart className="h-5 w-5 text-red-500 fill-current" />
-          <h2 className="text-xl font-bold text-white">Coming Soon</h2>
+          <h2 className="text-xl font-bold text-white">Coming Soon & New Arrivals</h2>
         </div>
-        <div className="text-sm text-gray-400">Favorite shows with upcoming episodes</div>
+        <div className="text-sm text-gray-400">Recent additions and upcoming episodes</div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {upcomingShows.map((show) => (
-          <div key={show.id} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+        {allItems.map((item) => (
+          <div 
+            key={`${item.id}-${item.isRecent ? 'recent' : 'upcoming'}`} 
+            className={`flex items-center gap-3 rounded-lg p-3 transition-colors ${
+              item.isRecent 
+                ? 'bg-slate-800/50 hover:bg-slate-700/50' 
+                : 'bg-slate-800/20 hover:bg-slate-700/30 opacity-70'
+            }`}
+          >
             <img
-              src={show.thumbnail}
-              alt={show.title}
+              src={item.thumbnail}
+              alt={item.title}
               className="w-12 h-16 object-cover rounded"
             />
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-white truncate">{show.title}</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Calendar className="h-3 w-3" />
-                <span>{format(parseISO(show.nextEpisodeDate!), 'MMM d, yyyy')}</span>
+              <h3 className={`font-semibold truncate ${item.isRecent ? 'text-white' : 'text-gray-300'}`}>
+                {item.title}
+              </h3>
+              <div className={`flex items-center gap-2 text-sm ${item.isRecent ? 'text-gray-400' : 'text-gray-500'}`}>
+                {item.isRecent ? (
+                  <>
+                    <Plus className="h-3 w-3" />
+                    <span>Added {format(parseISO(item.dateAdded), 'MMM d')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="h-3 w-3" />
+                    <span>{format(parseISO(item.nextEpisodeDate!), 'MMM d, yyyy')}</span>
+                  </>
+                )}
               </div>
             </div>
-            <button
-              onClick={() => handleFavoriteClick(show.id, show.title, show.isFavorite)}
-              className="p-1 hover:bg-slate-600 rounded transition-colors"
-            >
-              <Heart className="h-4 w-4 text-red-500 fill-current" />
-            </button>
+            <div className="flex items-center gap-2">
+              {item.isRecent && (
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-600 text-white">
+                  NEW
+                </span>
+              )}
+              {!item.isRecent && (
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600 text-gray-300">
+                  SOON
+                </span>
+              )}
+              {item.isFavorite && (
+                <button
+                  onClick={() => handleFavoriteClick(item.id, item.title, item.isFavorite)}
+                  className="p-1 hover:bg-slate-600 rounded transition-colors"
+                >
+                  <Heart className="h-4 w-4 text-red-500 fill-current" />
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
