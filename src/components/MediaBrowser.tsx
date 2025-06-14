@@ -5,6 +5,7 @@ import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
 import MediaPagination from './MediaPagination';
 import MediaScanner from './MediaScanner';
+import ComingSoon from './ComingSoon';
 import { mockMedia } from '@/data/mockMedia';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +50,25 @@ const MediaBrowser = () => {
       description: `Added ${addedCount} new items to your library`,
     });
     // In real implementation, this would refresh the media data
+  };
+
+  const handleToggleFavorite = (id: string) => {
+    setMediaData(prevData => 
+      prevData.map(item => 
+        item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
+      )
+    );
+    
+    // Update selected media if it's currently open
+    if (selectedMedia && selectedMedia.id === id) {
+      setSelectedMedia(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+    }
+
+    const item = mediaData.find(item => item.id === id);
+    toast({
+      title: item?.isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: `${item?.title} ${item?.isFavorite ? 'removed from' : 'added to'} your favorites`,
+    });
   };
 
   const handleUpdateWatchStatus = (id: string, status: 'unwatched' | 'in-progress' | 'watched') => {
@@ -242,6 +262,12 @@ const MediaBrowser = () => {
         </div>
       </div>
 
+      {/* Coming Soon Section */}
+      <ComingSoon 
+        mediaData={mediaData} 
+        onToggleFavorite={handleToggleFavorite}
+      />
+
       {/* Search and Filters */}
       <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative flex-1 max-w-md">
@@ -294,6 +320,7 @@ const MediaBrowser = () => {
             media={media}
             onClick={() => setSelectedMedia(media)}
             showDateAdded={activeFilter === 'recently-added'}
+            onToggleFavorite={handleToggleFavorite}
           />
         ))}
       </div>
@@ -336,6 +363,7 @@ const MediaBrowser = () => {
           onClose={() => setSelectedMedia(null)}
           onUpdateWatchStatus={handleUpdateWatchStatus}
           onUpdateEpisodeStatus={handleUpdateEpisodeStatus}
+          onToggleFavorite={handleToggleFavorite}
         />
       )}
     </div>

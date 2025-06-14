@@ -14,6 +14,7 @@ export const mockMedia: MediaItem[] = [
     genre: ['Action', 'Sci-Fi'],
     dateAdded: '2024-01-15',
     watchStatus: 'watched',
+    isFavorite: false,
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: '5.1',
@@ -36,6 +37,8 @@ export const mockMedia: MediaItem[] = [
     genre: ['Drama', 'Fantasy', 'Horror'],
     dateAdded: '2024-01-10',
     watchStatus: 'in-progress',
+    isFavorite: true,
+    nextEpisodeDate: '2024-07-15',
     progress: {
       currentEpisode: 2,
       totalEpisodes: 8,
@@ -123,6 +126,7 @@ export const mockMedia: MediaItem[] = [
     genre: ['Action', 'Adventure', 'Sci-Fi'],
     dateAdded: '2023-12-28',
     watchStatus: 'unwatched',
+    isFavorite: true,
      technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: 'Dolby Atmos',
@@ -145,6 +149,7 @@ export const mockMedia: MediaItem[] = [
     genre: ['Drama'],
     dateAdded: '2023-12-20',
     watchStatus: 'watched',
+    isFavorite: false,
     technicalInfo: {
       videoCodec: 'H.264',
       audioFormat: 'Stereo',
@@ -167,6 +172,7 @@ export const mockMedia: MediaItem[] = [
     genre: ['Adventure', 'Drama', 'Sci-Fi'],
     dateAdded: '2023-11-15',
     watchStatus: 'watched',
+    isFavorite: false,
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: '7.1',
@@ -189,6 +195,8 @@ export const mockMedia: MediaItem[] = [
     genre: ['Crime', 'Drama', 'Thriller'],
     dateAdded: '2023-10-01',
     watchStatus: 'in-progress',
+    isFavorite: true,
+    nextEpisodeDate: '2024-08-20',
     progress: {
       currentEpisode: 5,
       totalEpisodes: 16,
@@ -261,6 +269,54 @@ export const mockMedia: MediaItem[] = [
       subtitles: ['en', 'es'],
       fileSize: '6.1 GB',
       bitrate: '12 Mbps'
+    }
+  },
+  {
+    id: '7',
+    title: 'The Mandalorian',
+    type: 'tv',
+    year: 2019,
+    rating: 8.7,
+    duration: '3 Seasons',
+    description: 'The travels of a lone bounty hunter in the outer reaches of the galaxy.',
+    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=450&fit=crop',
+    genre: ['Action', 'Adventure', 'Sci-Fi'],
+    dateAdded: '2024-01-05',
+    watchStatus: 'in-progress',
+    isFavorite: true,
+    nextEpisodeDate: '2024-06-25',
+    technicalInfo: {
+      videoCodec: 'H.265',
+      audioFormat: 'Dolby Atmos',
+      resolution: '4K',
+      subtitles: ['en', 'es', 'fr'],
+      fileSize: '12.5 GB',
+      bitrate: '25 Mbps'
+    }
+  },
+  {
+    id: '8',
+    title: 'House of the Dragon',
+    type: 'tv',
+    year: 2022,
+    rating: 8.5,
+    duration: '2 Seasons',
+    description: 'The Targaryen civil war, set 200 years before the events of Game of Thrones.',
+    thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=450&fit=crop',
+    genre: ['Drama', 'Fantasy', 'Action'],
+    dateAdded: '2024-01-08',
+    watchStatus: 'watched',
+    isFavorite: true,
+    nextEpisodeDate: '2024-07-01',
+    technicalInfo: {
+      videoCodec: 'H.265',
+      audioFormat: 'Dolby Atmos',
+      resolution: '4K',
+      subtitles: ['en', 'es', 'de'],
+      fileSize: '15.2 GB',
+      bitrate: '30 Mbps'
     }
   }
 ];

@@ -44,4 +44,6 @@ export interface MediaItem {
   progress?: MediaProgress;
   episodes?: Episode[];
   technicalInfo?: MediaTechnicalInfo;
+  isFavorite?: boolean;
+  nextEpisodeDate?: string; // For TV shows, when the next episode is expected
 }
