@@ -38,6 +38,16 @@ const tmdbApi = axios.create({
   }
 });
 
+// Helper function to get library path based on media type
+const getLibraryPath = (mediaType) => {
+  if (mediaType === 'movie') {
+    return process.env.MOVIES_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+  } else if (mediaType === 'tv') {
+    return process.env.TV_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+  }
+  return process.env.MEDIA_LIBRARY_PATH;
+};
+
 // Test TMDB API connection
 app.get('/api/tmdb/test', async (req, res) => {
   try {
@@ -442,10 +452,10 @@ app.get('/api/media/:id/verify', (req, res) => {
     let fileSystemExists = false;
     let filePath = media.file_path;
 
-    // If no file path in database, construct expected path
+    // If no file path in database, construct expected path using appropriate library
     if (!filePath) {
-      const mediaType = media.type === 'tv' ? 'tv' : 'movies';
-      filePath = `/media/${mediaType}/${media.title} (${media.year})`;
+      const libraryPath = getLibraryPath(media.type);
+      filePath = path.join(libraryPath, `${media.title} (${media.year})`);
     }
 
     // Check if file/directory exists
@@ -498,10 +508,11 @@ app.get('/api/media/verify-recent', (req, res) => {
 
     const verificationResults = [];
     const fs = require('fs');
+    const path = require('path');
 
     for (const media of results) {
-      const mediaType = media.type === 'tv' ? 'tv' : 'movies';
-      const expectedPath = `/media/${mediaType}/${media.title} (${media.year})`;
+      const libraryPath = getLibraryPath(media.type);
+      const expectedPath = path.join(libraryPath, `${media.title} (${media.year})`);
       
       let fileSystemExists = false;
       try {
