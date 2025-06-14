@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Film, Tv } from 'lucide-react';
 import FocusableButton from './FocusableButton';
 
 interface MediaFiltersProps {
@@ -13,6 +13,8 @@ interface MediaFiltersProps {
   focusedSection: string;
   navigationItems: any[];
   focusedIndex: number;
+  movieCount: number;
+  tvShowCount: number;
 }
 
 const MediaFilters = ({
@@ -24,7 +26,9 @@ const MediaFilters = ({
   filterRefs,
   focusedSection,
   navigationItems,
-  focusedIndex
+  focusedIndex,
+  movieCount,
+  tvShowCount
 }: MediaFiltersProps) => {
   const filters = [
     { key: 'all', label: 'All' },
@@ -71,19 +75,36 @@ const MediaFilters = ({
           />
         </div>
         
-        <div className="flex gap-2">
-          {filters.map((filter, index) => (
-            <FocusableButton
-              key={filter.key}
-              ref={(el) => filterRefs.current[index] = el}
-              variant="filter"
-              onClick={() => onFilterChange(filter.key as typeof activeFilter)}
-              isActive={activeFilter === filter.key}
-              isFocused={focusedSection === 'filters' && navigationItems[focusedIndex]?.id === `filter-${index}`}
-            >
-              {filter.label}
-            </FocusableButton>
-          ))}
+        <div className="flex items-center gap-4">
+          {/* Count displays */}
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg">
+              <Film className="h-4 w-4 text-blue-400" />
+              <span className="text-white font-semibold text-sm">{movieCount}</span>
+              <span className="text-gray-400 text-xs">Movies</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg">
+              <Tv className="h-4 w-4 text-purple-400" />
+              <span className="text-white font-semibold text-sm">{tvShowCount}</span>
+              <span className="text-gray-400 text-xs">TV Shows</span>
+            </div>
+          </div>
+          
+          {/* Filter buttons */}
+          <div className="flex gap-2">
+            {filters.map((filter, index) => (
+              <FocusableButton
+                key={filter.key}
+                ref={(el) => filterRefs.current[index] = el}
+                variant="filter"
+                onClick={() => onFilterChange(filter.key as typeof activeFilter)}
+                isActive={activeFilter === filter.key}
+                isFocused={focusedSection === 'filters' && navigationItems[focusedIndex]?.id === `filter-${index}`}
+              >
+                {filter.label}
+              </FocusableButton>
+            ))}
+          </div>
         </div>
       </div>
 

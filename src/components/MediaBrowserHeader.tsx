@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shuffle, RefreshCw, Search, Film, Tv } from 'lucide-react';
+import { Shuffle, RefreshCw, Search } from 'lucide-react';
 import FocusableButton from './FocusableButton';
 
 interface MediaBrowserHeaderProps {
@@ -12,8 +12,7 @@ interface MediaBrowserHeaderProps {
   focusedSection: string;
   navigationItems: any[];
   focusedIndex: number;
-  movieCount: number;
-  tvShowCount: number;
+  lastUpdated?: string;
 }
 
 const MediaBrowserHeader = ({ 
@@ -25,30 +24,19 @@ const MediaBrowserHeader = ({
   focusedSection, 
   navigationItems, 
   focusedIndex,
-  movieCount,
-  tvShowCount
+  lastUpdated
 }: MediaBrowserHeaderProps) => {
+  const formatLastUpdated = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `(${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
+  };
+
   return (
     <div className="flex items-center justify-between mb-8">
-      <div className="flex items-center gap-8">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
-          <p className="text-gray-400">Browse and manage your movies and TV shows</p>
-        </div>
-        
-        {/* Count buttons */}
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg">
-            <Film className="h-5 w-5 text-blue-400" />
-            <span className="text-white font-semibold">{movieCount}</span>
-            <span className="text-gray-400 text-sm">Movies</span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg">
-            <Tv className="h-5 w-5 text-purple-400" />
-            <span className="text-white font-semibold">{tvShowCount}</span>
-            <span className="text-gray-400 text-sm">TV Shows</span>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
+        <p className="text-gray-400">Browse and manage your movies and TV shows</p>
       </div>
       
       <div className="flex gap-3">
@@ -77,10 +65,17 @@ const MediaBrowserHeader = ({
           disabled={isScanning}
           ref={(el) => (actionRefs.current[2] = el)}
           isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
+          className="flex flex-col items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
         >
-          <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-          {isScanning ? 'Scanning...' : 'Update Library'}
+          <div className="flex items-center gap-2">
+            <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
+            {isScanning ? 'Scanning...' : 'Update Library'}
+          </div>
+          {lastUpdated && !isScanning && (
+            <span className="text-xs text-gray-300 font-normal">
+              {formatLastUpdated(lastUpdated)}
+            </span>
+          )}
         </FocusableButton>
       </div>
     </div>

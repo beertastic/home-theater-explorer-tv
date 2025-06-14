@@ -31,6 +31,9 @@ const MediaBrowserContainer = () => {
     setIsMediaScannerOpen,
   } = useMediaState();
 
+  // Add last updated state
+  const [lastUpdated, setLastUpdated] = React.useState<string>(new Date().toISOString());
+
   const {
     handleRescan,
     handleOpenScanner,
@@ -47,6 +50,12 @@ const MediaBrowserContainer = () => {
     setIsScanning,
     setIsMediaScannerOpen,
   });
+
+  // Wrap handleRescan to update lastUpdated
+  const handleRescanWithUpdate = () => {
+    handleRescan();
+    setLastUpdated(new Date().toISOString());
+  };
 
   const filterRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const actionRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -152,15 +161,14 @@ const MediaBrowserContainer = () => {
     <div className="min-h-screen p-8">
       <MediaBrowserHeader
         onRandomSelect={() => setIsRandomSelectorOpen(true)}
-        onRescan={handleRescan}
+        onRescan={handleRescanWithUpdate}
         onOpenScanner={handleOpenScanner}
         isScanning={isScanning}
         actionRefs={actionRefs}
         focusedSection={focusedSection}
         navigationItems={navigationItems}
         focusedIndex={focusedIndex}
-        movieCount={movieCount}
-        tvShowCount={tvShowCount}
+        lastUpdated={lastUpdated}
       />
 
       <ComingSoon 
@@ -178,6 +186,8 @@ const MediaBrowserContainer = () => {
         focusedSection={focusedSection}
         navigationItems={navigationItems}
         focusedIndex={focusedIndex}
+        movieCount={movieCount}
+        tvShowCount={tvShowCount}
       />
 
       <MediaGrid
