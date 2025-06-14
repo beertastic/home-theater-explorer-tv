@@ -146,7 +146,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
                 max={duration || 0}
                 value={currentTime}
                 onChange={handleSeek}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer video-slider"
               />
               <div className="flex justify-between text-white text-sm mt-1">
                 <span>{formatTime(currentTime)}</span>
@@ -200,7 +200,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
                     step="0.1"
                     value={volume}
                     onChange={handleVolumeChange}
-                    className="w-20 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                    className="w-20 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer video-slider"
                   />
                 </div>
                 <button
@@ -215,25 +215,27 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
         </div>
       </div>
 
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-        }
-        
-        .slider::-moz-range-thumb {
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .video-slider::-webkit-slider-thumb {
+            appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+          }
+          
+          .video-slider::-moz-range-thumb {
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+          }
+        `
+      }} />
     </div>
   );
 };
