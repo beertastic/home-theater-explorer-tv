@@ -114,6 +114,29 @@ export const mockMedia: MediaItem[] = [
     }
   },
   {
+    id: 'new-test-show',
+    title: 'The Night Agent',
+    type: 'tv',
+    year: 2023,
+    rating: 8.1,
+    duration: '1 Season',
+    description: 'A low-level FBI agent works in the basement of the White House manning a phone that never rings.',
+    thumbnail: 'https://images.unsplash.com/photo-1603386493294-59f9a66dd677?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1603386493294-59f9a66dd677?w=800&h=450&fit=crop',
+    genre: ['Action', 'Drama', 'Thriller'],
+    dateAdded: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().split('T')[0], // 4 hours ago
+    watchStatus: 'unwatched',
+    isFavorite: false,
+    technicalInfo: {
+      videoCodec: 'H.265',
+      audioFormat: '5.1',
+      resolution: '4K',
+      subtitles: ['en', 'es', 'fr'],
+      fileSize: '6.8 GB',
+      bitrate: '18 Mbps'
+    }
+  },
+  {
     id: '3',
     title: 'Avengers: Endgame',
     type: 'movie',
