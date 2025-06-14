@@ -1,4 +1,3 @@
-
 import { MediaItem } from '@/types/media';
 
 export const mockMedia: MediaItem[] = [
@@ -10,8 +9,8 @@ export const mockMedia: MediaItem[] = [
     rating: 8.7,
     duration: '2h 16m',
     description: 'A computer programmer discovers that reality as he knows it might not be real after all.',
-    thumbnail: 'https://images.unsplash.com/photo-1489599511835-c41b1ddce4df?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1489599511835-c41b1ddce4df?w=800&h=450&fit=crop',
+    thumbnail: 'https://via.placeholder.com/300x450/1a1a1a/00ff41?text=THE+MATRIX',
+    backdrop: 'https://via.placeholder.com/800x450/1a1a1a/00ff41?text=THE+MATRIX',
     genre: ['Action', 'Sci-Fi'],
     dateAdded: '2024-01-15',
     watchStatus: 'watched',
@@ -145,8 +144,8 @@ export const mockMedia: MediaItem[] = [
     rating: 8.6,
     duration: '1 Season',
     description: 'Orphaned at a young age, Beth Harmon discovers she has an amazing flair for chess.',
-    thumbnail: 'https://via.placeholder.com/300x450/64748b/ffffff?text=The+Queens+Gambit',
-    backdrop: 'https://via.placeholder.com/800x450/64748b/ffffff?text=The+Queens+Gambit',
+    thumbnail: 'https://via.placeholder.com/300x450/8b5a2b/ffffff?text=QUEENS+GAMBIT',
+    backdrop: 'https://via.placeholder.com/800x450/8b5a2b/ffffff?text=QUEENS+GAMBIT',
     genre: ['Drama'],
     dateAdded: '2023-12-20',
     watchStatus: 'watched',
@@ -168,8 +167,8 @@ export const mockMedia: MediaItem[] = [
     rating: 8.6,
     duration: '2h 49m',
     description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-    thumbnail: 'https://images.unsplash.com/photo-1505764043699-f5e3089c9788?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1505764043699-f5e3089c9788?w=800&h=450&fit=crop',
+    thumbnail: 'https://via.placeholder.com/300x450/0a0a0a/ffffff?text=INTERSTELLAR',
+    backdrop: 'https://via.placeholder.com/800x450/0a0a0a/ffffff?text=INTERSTELLAR',
     genre: ['Adventure', 'Drama', 'Sci-Fi'],
     dateAdded: '2023-11-15',
     watchStatus: 'watched',
