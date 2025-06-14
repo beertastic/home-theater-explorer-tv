@@ -63,25 +63,25 @@ const DownloadsManager = () => {
         </button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-white">
             <Download className="h-5 w-5" />
             Downloads Manager
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-300">
             Manage your offline downloads and storage
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Storage Info */}
-          <div className="bg-slate-800/50 rounded-lg p-4">
+          <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
             <div className="flex items-center gap-2 mb-2">
-              <HardDrive className="h-4 w-4 text-gray-400" />
+              <HardDrive className="h-4 w-4 text-gray-300" />
               <span className="text-white font-medium">Storage Usage</span>
             </div>
-            <p className="text-gray-400">
+            <p className="text-gray-300">
               {localFiles.length} files • {formatFileSize(totalSize)} used
             </p>
           </div>
@@ -109,11 +109,11 @@ const DownloadsManager = () => {
               <h3 className="text-white font-semibold mb-3">Downloaded Files</h3>
               <div className="space-y-2">
                 {localFiles.map((file) => (
-                  <div key={file.mediaId} className="bg-slate-800 rounded-lg p-4">
+                  <div key={file.mediaId} className="bg-slate-800/70 rounded-lg p-4 border border-slate-700">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="text-white font-medium">{file.title}</h4>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-gray-300 text-sm">
                           {formatFileSize(file.fileSize)} • Downloaded {formatDate(file.downloadDate)}
                         </p>
                       </div>
@@ -125,19 +125,19 @@ const DownloadsManager = () => {
                               <span className="text-sm">Remove from Local</span>
                             </button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="bg-slate-900 border-slate-700 text-white">
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Remove from Local Storage</AlertDialogTitle>
-                              <AlertDialogDescription>
+                              <AlertDialogTitle className="text-white">Remove from Local Storage</AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-300">
                                 Are you sure you want to remove "{file.title}" from your local storage? 
                                 This will free up {formatFileSize(file.fileSize)} of space, but you'll need to download it again to watch offline.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="bg-slate-700 hover:bg-slate-600 text-white border-slate-600">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => deleteLocalFile(file.mediaId)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-red-600 hover:bg-red-700 text-white"
                               >
                                 Remove from Local
                               </AlertDialogAction>
@@ -155,8 +155,8 @@ const DownloadsManager = () => {
           {downloads.length === 0 && localFiles.length === 0 && (
             <div className="text-center py-8">
               <Download className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-400">No downloads yet</p>
-              <p className="text-gray-500 text-sm">Downloaded files will appear here</p>
+              <p className="text-gray-300">No downloads yet</p>
+              <p className="text-gray-400 text-sm">Downloaded files will appear here</p>
             </div>
           )}
         </div>
