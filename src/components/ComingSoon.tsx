@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
@@ -49,6 +50,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     const today = new Date();
     return mediaData.filter(media => {
       if (!media.nextEpisodeDate) return false;
+      if (media.watchStatus === 'watched') return false; // Filter out watched media
       const nextAirDate = new Date(media.nextEpisodeDate);
       return nextAirDate >= today;
     }).sort((a, b) => new Date(b.nextEpisodeDate!).getTime() - new Date(a.nextEpisodeDate!).getTime());
@@ -57,8 +59,10 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const getNewlyAddedMedia = () => {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 7); // Consider media added in the last 7 days as "new"
-    return mediaData.filter(media => new Date(media.dateAdded) >= cutoff)
-      .sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+    return mediaData.filter(media => {
+      if (media.watchStatus === 'watched') return false; // Filter out watched media
+      return new Date(media.dateAdded) >= cutoff;
+    }).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
   };
 
   const getAllSortedMedia = () => {
