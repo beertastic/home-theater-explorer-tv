@@ -352,6 +352,7 @@ const MediaBrowser = () => {
       <RandomMovieSelector 
         mediaData={mediaData}
         onSelectMedia={setSelectedMedia}
+        onToggleFavorite={handleToggleFavorite}
         isOpen={isRandomSelectorOpen}
         onClose={() => setIsRandomSelectorOpen(false)}
       />
