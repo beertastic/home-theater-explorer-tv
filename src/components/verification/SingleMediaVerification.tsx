@@ -20,9 +20,10 @@ interface VerificationResult {
 interface SingleMediaVerificationProps {
   verificationResult: VerificationResult | null;
   isLoading: boolean;
+  onRefresh?: () => void;
 }
 
-const SingleMediaVerification = ({ verificationResult, isLoading }: SingleMediaVerificationProps) => {
+const SingleMediaVerification = ({ verificationResult, isLoading, onRefresh }: SingleMediaVerificationProps) => {
   if (!verificationResult && !isLoading) return null;
 
   return (
@@ -38,6 +39,15 @@ const SingleMediaVerification = ({ verificationResult, isLoading }: SingleMediaV
           <span className={getStatusColor(verificationResult.status)}>
             {getStatusText(verificationResult.status)}
           </span>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="p-1 hover:bg-slate-700 rounded transition-colors"
+              title="Refresh verification status"
+            >
+              <RefreshCw className="h-3 w-3 text-gray-400 hover:text-white" />
+            </button>
+          )}
           {verificationResult.status === 'file-missing' && (
             <span className="text-gray-400 text-xs">
               Expected: {verificationResult.filePath}

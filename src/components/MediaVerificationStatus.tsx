@@ -91,6 +91,12 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
     }
   };
 
+  const handleRefresh = () => {
+    if (mediaId) {
+      verifyMedia(mediaId);
+    }
+  };
+
   useEffect(() => {
     if (mediaId) {
       verifyMedia(mediaId);
@@ -121,6 +127,7 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
     <SingleMediaVerification 
       verificationResult={verificationResult}
       isLoading={isLoading}
+      onRefresh={handleRefresh}
     />
   );
 };
