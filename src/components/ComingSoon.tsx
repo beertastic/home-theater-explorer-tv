@@ -4,6 +4,7 @@ import MediaVerificationStatus from './MediaVerificationStatus';
 import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
 import { useLocalDownloads } from '@/hooks/useLocalDownloads';
+import { API_BASE_URL } from '@/config/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,8 +53,8 @@ const ComingSoon = ({ mediaData, onToggleFavorite, isUsingMockData = false }: Co
 
   const handleDownload = (media: MediaItem) => {
     const downloadUrl = isUsingMockData 
-      ? `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath || media.id)}`
-      : `http://192.168.1.94:3001/api/media/stream/${media.id}`;
+      ? `${API_BASE_URL}/media/stream/${encodeURIComponent(media.filePath || media.id)}`
+      : `${API_BASE_URL}/media/stream/${media.id}`;
     startDownload(media.id, media.title, downloadUrl);
   };
 
@@ -130,10 +131,10 @@ const ComingSoon = ({ mediaData, onToggleFavorite, isUsingMockData = false }: Co
   const getVideoUrl = (media: MediaItem) => {
     if (isUsingMockData && media.filePath) {
       // For mock data, try the file path first
-      return `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
+      return `${API_BASE_URL}/media/stream/${encodeURIComponent(media.filePath)}`;
     }
     // For real API data, use the streaming endpoint
-    return `http://192.168.1.94:3001/api/media/stream/${media.id}`;
+    return `${API_BASE_URL}/media/stream/${media.id}`;
   };
 
   const recentMedia = getRecentlyAddedMedia();
