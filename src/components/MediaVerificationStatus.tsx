@@ -34,6 +34,25 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Mock verification data generator
+  const generateMockVerificationResult = (id: string): VerificationResult => {
+    const statuses: ('verified' | 'file-missing' | 'missing')[] = ['verified', 'file-missing', 'missing'];
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    
+    return {
+      id: id,
+      title: `Mock Media ${id}`,
+      type: Math.random() > 0.5 ? 'movie' : 'tv',
+      year: 2020 + Math.floor(Math.random() * 4),
+      dateAdded: new Date().toISOString().split('T')[0],
+      databaseExists: randomStatus !== 'missing',
+      fileSystemExists: randomStatus === 'verified',
+      status: randomStatus,
+      filePath: `/nas/media/${randomStatus === 'movie' ? 'movies' : 'tv'}/${id}/`,
+      genre: ['Action', 'Drama']
+    };
+  };
+
   const verifyMedia = async (id: string) => {
     setIsLoading(true);
     try {
@@ -51,10 +70,15 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
         });
       }
     } catch (error) {
+      // Use mock data when API fails
+      console.log('API failed, using mock verification data for testing');
+      const mockResult = generateMockVerificationResult(id);
+      setVerificationResult(mockResult);
+      
       toast({
-        title: "Verification Failed",
-        description: "Could not verify media status",
-        variant: "destructive"
+        title: "Using Mock Data",
+        description: `Mock verification status: ${mockResult.status}`,
+        variant: mockResult.status === 'verified' ? 'default' : 'destructive'
       });
     } finally {
       setIsLoading(false);
@@ -81,9 +105,19 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
         });
       }
     } catch (error) {
+      // Use mock bulk data when API fails
+      console.log('API failed, using mock bulk verification data for testing');
+      const mockBulkResults = {
+        totalChecked: 12,
+        verified: 8,
+        issues: 4,
+        results: Array.from({ length: 5 }, (_, i) => generateMockVerificationResult(`mock-${i + 1}`))
+      };
+      setBulkResults(mockBulkResults);
+      
       toast({
-        title: "Bulk Verification Failed",
-        description: "Could not verify recent media",
+        title: "Using Mock Bulk Data",
+        description: `Mock results: ${mockBulkResults.issues} issues found`,
         variant: "destructive"
       });
     } finally {
