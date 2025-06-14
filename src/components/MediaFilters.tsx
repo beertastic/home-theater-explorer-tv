@@ -2,6 +2,7 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import FocusableButton from './FocusableButton';
+import { MediaItem } from '@/types/media';
 
 interface MediaFiltersProps {
   searchQuery: string;
@@ -13,9 +14,7 @@ interface MediaFiltersProps {
   focusedSection: string;
   navigationItems: any[];
   focusedIndex: number;
-  movieCount: number;
-  tvShowCount: number;
-  favoritesCount: number;
+  mediaData: MediaItem[];
 }
 
 const MediaFilters = ({
@@ -28,10 +27,13 @@ const MediaFilters = ({
   focusedSection,
   navigationItems,
   focusedIndex,
-  movieCount,
-  tvShowCount,
-  favoritesCount
+  mediaData
 }: MediaFiltersProps) => {
+  // Calculate actual counts from media data
+  const movieCount = mediaData.filter(item => item.type === 'movie').length;
+  const tvShowCount = mediaData.filter(item => item.type === 'tv').length;
+  const favoritesCount = mediaData.filter(item => item.isFavorite).length;
+
   const filters = [
     { key: 'all', label: 'All' },
     { key: 'in-progress', label: 'In Progress' },
