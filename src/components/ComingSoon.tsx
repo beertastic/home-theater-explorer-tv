@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, Calendar, Clock, Play, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import { MediaItem } from '@/types/media';
 import {
@@ -77,13 +77,6 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
           <h2 className="text-2xl font-bold text-white mb-2">Coming Soon & New Arrivals</h2>
           <p className="text-gray-400">Stay up to date with upcoming releases and recent additions</p>
         </div>
-        
-        {/* Add bulk verification for new items */}
-        {getNewlyAddedMedia().length > 0 && (
-          <div className="w-80">
-            <MediaVerificationStatus showBulkCheck={true} />
-          </div>
-        )}
       </div>
 
       <div className="space-y-4">
@@ -118,7 +111,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                   }`}>
                     {isNew ? 'NEW' : 'UPCOMING'}
                   </span>
-                  {isNew && <MediaVerificationStatus mediaId={media.id} />}
+                  <MediaVerificationStatus mediaId={media.id} />
                 </div>
               </div>
               <div className="flex items-center gap-2">
