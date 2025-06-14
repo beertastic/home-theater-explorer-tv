@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
@@ -59,8 +60,8 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     const newlyAddedMedia = getNewlyAddedMedia();
     const upcomingMedia = getUpcomingMedia();
     
-    // Combine new media first, then upcoming media
-    return [...newlyAddedMedia, ...upcomingMedia];
+    // Combine new media first, then upcoming media, limit to 6 items
+    return [...newlyAddedMedia, ...upcomingMedia].slice(0, 6);
   };
 
   const sortedMedia = getAllSortedMedia();
