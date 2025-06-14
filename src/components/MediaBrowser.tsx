@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
-import MediaCard from './MediaCard';
+import MediaBrowserHeader from './MediaBrowserHeader';
+import MediaFilters from './MediaFilters';
+import MediaGrid from './MediaGrid';
 import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
-import MediaPagination from './MediaPagination';
 import MediaScanner from './MediaScanner';
 import ComingSoon from './ComingSoon';
-import FocusableButton from './FocusableButton';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
 import { mockMedia } from '@/data/mockMedia';
 import { MediaItem } from '@/types/media';
@@ -225,31 +224,9 @@ const MediaBrowser = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeFilter]);
-
-  const getFilterLabel = () => {
-    switch (activeFilter) {
-      case 'recently-added':
-        return 'Recently Added';
-      case 'in-progress':
-        return 'Continue Watching';
-      default:
-        return null;
-    }
-  };
-
-  const getFilterDescription = () => {
-    switch (activeFilter) {
-      case 'recently-added':
-        return 'Latest additions to your media library';
-      case 'in-progress':
-        return 'Pick up where you left off';
-      default:
-        return null;
-    }
-  };
 
   useEffect(() => {
     if (filterRefs.current[0]) {
@@ -257,148 +234,59 @@ const MediaBrowser = () => {
     }
   }, []);
 
-  const filters = [
-    { key: 'all', label: 'All' },
-    { key: 'in-progress', label: 'In Progress' },
-    { key: 'recently-added', label: 'Recently Added' },
-    { key: 'movie', label: 'Movies' },
-    { key: 'tv', label: 'TV Shows' }
-  ];
-
   return (
     <div className="min-h-screen p-8">
-      {/* Header */}
-      <div className="mb-12 flex items-center justify-between">
-        <div>
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Media Center
-          </h1>
-          <p className="text-xl text-gray-300">Your personal media collection • Use arrow keys to navigate</p>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <FocusableButton
-            ref={(el) => actionRefs.current[0] = el}
-            variant="action"
-            onClick={() => setIsRandomSelectorOpen(true)}
-            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-0'}
-          >
-            <Sparkles className="h-5 w-5" />
-            Random Pick
-          </FocusableButton>
+      <MediaBrowserHeader
+        onRandomSelect={() => setIsRandomSelectorOpen(true)}
+        onOpenScanner={handleOpenScanner}
+        onRescan={handleRescan}
+        isScanning={isScanning}
+        actionRefs={actionRefs}
+        focusedSection={focusedSection}
+        navigationItems={navigationItems}
+        focusedIndex={focusedIndex}
+      />
 
-          <FocusableButton
-            ref={(el) => actionRefs.current[1] = el}
-            variant="action"
-            onClick={handleOpenScanner}
-            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
-            className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
-          >
-            <Info className="h-5 w-5" />
-            Verify Metadata
-          </FocusableButton>
-
-          <FocusableButton
-            ref={(el) => actionRefs.current[2] = el}
-            variant="action"
-            onClick={handleRescan}
-            disabled={isScanning}
-            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
-            className={isScanning 
-              ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
-            }
-          >
-            <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-            {isScanning ? 'Scanning...' : 'Update Library'}
-          </FocusableButton>
-        </div>
-      </div>
-
-      {/* Coming Soon Section */}
       <ComingSoon 
         mediaData={mediaData} 
         onToggleFavorite={handleToggleFavorite}
       />
 
-      {/* Search and Filters */}
-      <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <input
-            ref={searchRef}
-            type="text"
-            placeholder="Search movies, shows, genres..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          {filters.map((filter, index) => (
-            <FocusableButton
-              key={filter.key}
-              ref={(el) => filterRefs.current[index] = el}
-              variant="filter"
-              onClick={() => setActiveFilter(filter.key as typeof activeFilter)}
-              isActive={activeFilter === filter.key}
-              isFocused={focusedSection === 'filters' && navigationItems[focusedIndex]?.id === `filter-${index}`}
-            >
-              {filter.label}
-            </FocusableButton>
-          ))}
-        </div>
-      </div>
+      <MediaFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        searchRef={searchRef}
+        filterRefs={filterRefs}
+        focusedSection={focusedSection}
+        navigationItems={navigationItems}
+        focusedIndex={focusedIndex}
+      />
 
-      {/* Filter Header */}
-      {getFilterLabel() && (
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">{getFilterLabel()}</h2>
-          <p className="text-gray-400">{getFilterDescription()}</p>
-        </div>
-      )}
-
-      {/* Media Grid with pagination */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-        {paginatedMedia.map((media, index) => (
-          <MediaCard
-            key={media.id}
-            ref={(el) => mediaRefs.current[index] = el}
-            media={media}
-            onClick={() => setSelectedMedia(media)}
-            showDateAdded={activeFilter === 'recently-added'}
-            onToggleFavorite={handleToggleFavorite}
-            isFocused={focusedSection === 'media-grid' && navigationItems[focusedIndex]?.id === `media-${index}`}
-          />
-        ))}
-      </div>
-
-      {/* Pagination */}
-      <MediaPagination
+      <MediaGrid
+        media={paginatedMedia}
+        onMediaSelect={setSelectedMedia}
+        onToggleFavorite={handleToggleFavorite}
+        showDateAdded={activeFilter === 'recently-added'}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        totalItems={filteredMedia.length}
         itemsPerPage={itemsPerPage}
+        totalItems={filteredMedia.length}
+        activeFilter={activeFilter}
+        mediaRefs={mediaRefs}
+        focusedSection={focusedSection}
+        navigationItems={navigationItems}
+        focusedIndex={focusedIndex}
       />
 
-      {/* Results count */}
-      <div className="mt-8 text-center text-gray-400">
-        Showing {filteredMedia.length} of {mediaData.length} items
-        {activeFilter === 'recently-added' && ' (sorted by date added)'}
-        {activeFilter === 'in-progress' && ' (sorted by last watched)'}
-      </div>
-
-      {/* Media Scanner Modal */}
       <MediaScanner
         isOpen={isMediaScannerOpen}
         onClose={() => setIsMediaScannerOpen(false)}
         onScanComplete={handleScanComplete}
       />
 
-      {/* Random Movie Selector Modal */}
       <RandomMovieSelector 
         mediaData={mediaData}
         onSelectMedia={setSelectedMedia}
@@ -407,7 +295,6 @@ const MediaBrowser = () => {
         onClose={() => setIsRandomSelectorOpen(false)}
       />
 
-      {/* Media Modal */}
       {selectedMedia && (
         <MediaModal
           media={selectedMedia}
