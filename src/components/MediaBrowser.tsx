@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
 import MediaCard from './MediaCard';
@@ -46,6 +45,60 @@ const MediaBrowser = () => {
     toast({
       title: "Watch status updated",
       description: `Marked as ${status.replace('-', ' ')}`,
+    });
+  };
+
+  const handleUpdateEpisodeStatus = (mediaId: string, episodeId: string, status: 'watched' | 'unwatched') => {
+    setMediaData(prevData => 
+      prevData.map(item => {
+        if (item.id === mediaId && item.episodes) {
+          const updatedEpisodes = item.episodes.map(episode => 
+            episode.id === episodeId ? { ...episode, watchStatus: status } : episode
+          );
+          
+          // Update overall watch status based on episodes
+          const watchedCount = updatedEpisodes.filter(ep => ep.watchStatus === 'watched').length;
+          const totalCount = updatedEpisodes.length;
+          let newWatchStatus: 'unwatched' | 'in-progress' | 'watched';
+          
+          if (watchedCount === 0) {
+            newWatchStatus = 'unwatched';
+          } else if (watchedCount === totalCount) {
+            newWatchStatus = 'watched';
+          } else {
+            newWatchStatus = 'in-progress';
+          }
+          
+          return { 
+            ...item, 
+            episodes: updatedEpisodes,
+            watchStatus: newWatchStatus,
+            progress: newWatchStatus === 'in-progress' ? {
+              ...item.progress,
+              currentEpisode: watchedCount,
+              totalEpisodes: totalCount,
+              progressPercent: Math.round((watchedCount / totalCount) * 100)
+            } : item.progress
+          };
+        }
+        return item;
+      })
+    );
+    
+    // Update selected media if it's currently open
+    if (selectedMedia && selectedMedia.id === mediaId) {
+      setSelectedMedia(prev => {
+        if (!prev || !prev.episodes) return prev;
+        const updatedEpisodes = prev.episodes.map(episode => 
+          episode.id === episodeId ? { ...episode, watchStatus: status } : episode
+        );
+        return { ...prev, episodes: updatedEpisodes };
+      });
+    }
+
+    toast({
+      title: "Episode status updated",
+      description: `Episode marked as ${status}`,
     });
   };
 
@@ -206,6 +259,7 @@ const MediaBrowser = () => {
           media={selectedMedia}
           onClose={() => setSelectedMedia(null)}
           onUpdateWatchStatus={handleUpdateWatchStatus}
+          onUpdateEpisodeStatus={handleUpdateEpisodeStatus}
         />
       )}
     </div>

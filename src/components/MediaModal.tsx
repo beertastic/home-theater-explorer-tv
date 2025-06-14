@@ -1,15 +1,16 @@
-
 import React from 'react';
 import { X, Play, Star, Calendar, Clock, Tag, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
 import { MediaItem } from '@/data/mockMedia';
+import EpisodeList from './EpisodeList';
 
 interface MediaModalProps {
   media: MediaItem;
   onClose: () => void;
   onUpdateWatchStatus: (id: string, status: 'unwatched' | 'in-progress' | 'watched') => void;
+  onUpdateEpisodeStatus?: (mediaId: string, episodeId: string, status: 'watched' | 'unwatched') => void;
 }
 
-const MediaModal = ({ media, onClose, onUpdateWatchStatus }: MediaModalProps) => {
+const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus }: MediaModalProps) => {
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -35,6 +36,12 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus }: MediaModalProps) =>
       case 'watched': return 'bg-green-600';
       case 'in-progress': return 'bg-blue-600';
       default: return 'bg-gray-600';
+    }
+  };
+
+  const handleEpisodeStatusUpdate = (episodeId: string, status: 'watched' | 'unwatched') => {
+    if (onUpdateEpisodeStatus) {
+      onUpdateEpisodeStatus(media.id, episodeId, status);
     }
   };
 
@@ -204,6 +211,14 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus }: MediaModalProps) =>
               </div>
             </div>
           </div>
+
+          {/* Episode List for TV Shows */}
+          {media.type === 'tv' && media.episodes && (
+            <EpisodeList 
+              episodes={media.episodes} 
+              onUpdateEpisodeStatus={handleEpisodeStatusUpdate}
+            />
+          )}
         </div>
       </div>
     </div>
