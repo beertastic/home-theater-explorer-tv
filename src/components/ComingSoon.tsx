@@ -1,19 +1,7 @@
-
-import React, { useState, useMemo } from 'react';
-import { Heart, Calendar, Clock, Plus } from 'lucide-react';
+import React from 'react';
+import { Star, Calendar, Clock, Play } from 'lucide-react';
+import MediaVerificationStatus from './MediaVerificationStatus';
 import { MediaItem } from '@/types/media';
-import { format, parseISO, isAfter, isWithinInterval, subDays } from 'date-fns';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 interface ComingSoonProps {
   mediaData: MediaItem[];
@@ -21,148 +9,116 @@ interface ComingSoonProps {
 }
 
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
-  const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
-  const [selectedShowId, setSelectedShowId] = useState<string>('');
-  const [selectedShowTitle, setSelectedShowTitle] = useState<string>('');
-
-  // Memoize the expensive filtering operation to prevent unnecessary re-renders
-  const { upcomingShows, recentShows } = useMemo(() => {
-    const now = new Date();
-    const twoDaysAgo = subDays(now, 2);
-
-    // Get upcoming episodes from favorite TV shows
-    const upcoming = mediaData
-      .filter(item => {
-        return item.type === 'tv' && 
-               item.isFavorite && 
-               item.nextEpisodeDate &&
-               isAfter(parseISO(item.nextEpisodeDate), now);
-      })
-      .sort((a, b) => 
-        parseISO(a.nextEpisodeDate!).getTime() - parseISO(b.nextEpisodeDate!).getTime()
-      )
-      .slice(0, 4); // Show max 4 upcoming shows
-
-    // Get recently added shows (last 2 days)
-    const recent = mediaData
-      .filter(item => {
-        const dateAdded = parseISO(item.dateAdded);
-        return isWithinInterval(dateAdded, { start: twoDaysAgo, end: now });
-      })
-      .sort((a, b) => 
-        parseISO(b.dateAdded).getTime() - parseISO(a.dateAdded).getTime()
-      )
-      .slice(0, 4); // Show max 4 recent shows
-
-    return { upcomingShows: upcoming, recentShows: recent };
-  }, [mediaData]);
-
-  const handleFavoriteClick = (showId: string, showTitle: string, isFavorite: boolean) => {
-    if (isFavorite) {
-      setSelectedShowId(showId);
-      setSelectedShowTitle(showTitle);
-      setShowRemoveFavoriteDialog(true);
-    } else {
-      onToggleFavorite(showId);
-    }
+  const getUpcomingMedia = () => {
+    const today = new Date();
+    return mediaData.filter(media => {
+      if (!media.nextEpisodeDate) return false;
+      const nextAirDate = new Date(media.nextEpisodeDate);
+      return nextAirDate >= today;
+    }).sort((a, b) => new Date(a.nextEpisodeDate!).getTime() - new Date(b.nextEpisodeDate!).getTime());
   };
 
-  const handleConfirmRemoveFavorite = () => {
-    onToggleFavorite(selectedShowId);
-    setShowRemoveFavoriteDialog(false);
-    setSelectedShowId('');
-    setSelectedShowTitle('');
+  const getNewlyAddedMedia = () => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7); // Consider media added in the last 7 days as "new"
+    return mediaData.filter(media => new Date(media.dateAdded) >= cutoff)
+      .sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
   };
 
-  const allItems = [...recentShows.map(item => ({ ...item, isRecent: true })), ...upcomingShows.map(item => ({ ...item, isRecent: false }))];
+  const upcomingMedia = getUpcomingMedia();
+  const newlyAddedMedia = getNewlyAddedMedia();
 
-  if (allItems.length === 0) {
+  if (upcomingMedia.length === 0 && newlyAddedMedia.length === 0) {
     return null;
   }
 
   return (
-    <div className="mb-8 bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-red-500 fill-current" />
-          <h2 className="text-xl font-bold text-white">Coming Soon & New Arrivals</h2>
+    <div className="mb-12">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Coming Soon & New Arrivals</h2>
+          <p className="text-gray-400">Stay up to date with upcoming releases and recent additions</p>
         </div>
-        <div className="text-sm text-gray-400">Recent additions and upcoming episodes</div>
+        
+        {/* Add bulk verification for new items */}
+        {newlyAddedMedia.length > 0 && (
+          <div className="w-80">
+            <MediaVerificationStatus showBulkCheck={true} />
+          </div>
+        )}
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {allItems.map((item) => (
-          <div 
-            key={`${item.id}-${item.isRecent ? 'recent' : 'upcoming'}`} 
-            className={`flex items-center gap-3 rounded-lg p-3 transition-colors ${
-              item.isRecent 
-                ? 'bg-slate-800/50 hover:bg-slate-700/50' 
-                : 'bg-slate-800/20 hover:bg-slate-700/30 opacity-70'
-            }`}
-          >
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Upcoming Media */}
+        {upcomingMedia.map((media) => (
+          <div key={media.id} className="relative group">
             <img
-              src={item.thumbnail}
-              alt={item.title}
-              className="w-12 h-16 object-cover rounded"
+              src={media.thumbnail}
+              alt={media.title}
+              className="w-full rounded-xl object-cover aspect-[2/3] shadow-xl"
             />
-            <div className="flex-1 min-w-0">
-              <h3 className={`font-semibold truncate ${item.isRecent ? 'text-white' : 'text-gray-300'}`}>
-                {item.title}
-              </h3>
-              <div className={`flex items-center gap-2 text-sm ${item.isRecent ? 'text-gray-400' : 'text-gray-500'}`}>
-                {item.isRecent ? (
-                  <>
-                    <Plus className="h-3 w-3" />
-                    <span>Added {format(parseISO(item.dateAdded), 'MMM d')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="h-3 w-3" />
-                    <span>{format(parseISO(item.nextEpisodeDate!), 'MMM d, yyyy')}</span>
-                  </>
-                )}
+            <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold text-lg">{media.title}</h3>
+                <p className="text-gray-300 text-sm">
+                  <Calendar className="inline-block h-4 w-4 mr-1 align-text-top" />
+                  {new Date(media.nextEpisodeDate!).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button
+                  onClick={() => onToggleFavorite(media.id)}
+                  className="p-2 bg-slate-800 hover:bg-blue-600 text-white rounded-full transition-colors"
+                >
+                  <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                </button>
+                <button className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
+                  <Play className="h-5 w-5" />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {item.isRecent && (
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-600 text-white">
-                  NEW
-                </span>
-              )}
-              {!item.isRecent && (
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600 text-gray-300">
-                  SOON
-                </span>
-              )}
-              {item.isFavorite && (
+          </div>
+        ))}
+
+        {/* Newly Added Media */}
+        {newlyAddedMedia.map((media) => (
+          <div key={media.id} className="relative group">
+            <img
+              src={media.thumbnail}
+              alt={media.title}
+              className="w-full rounded-xl object-cover aspect-[2/3] shadow-xl"
+            />
+            <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold text-lg">{media.title}</h3>
+                <p className="text-gray-300 text-sm">
+                  <Clock className="inline-block h-4 w-4 mr-1 align-text-top" />
+                  {media.duration}
+                </p>
+              </div>
+              <div className="absolute top-4 right-4 flex gap-2">
                 <button
-                  onClick={() => handleFavoriteClick(item.id, item.title, item.isFavorite)}
-                  className="p-1 hover:bg-slate-600 rounded transition-colors"
+                  onClick={() => onToggleFavorite(media.id)}
+                  className="p-2 bg-slate-800 hover:bg-blue-600 text-white rounded-full transition-colors"
                 >
-                  <Heart className="h-4 w-4 text-red-500 fill-current" />
+                  <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                 </button>
-              )}
+                <button className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
+                  <Play className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Update the badges section to include verification status */}
+            <div className="absolute top-4 left-4 flex flex-col gap-2">
+              <span className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded-full shadow-lg">
+                NEW
+              </span>
+              <MediaVerificationStatus mediaId={media.id} />
             </div>
           </div>
         ))}
       </div>
-
-      <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove from Favorites?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove "{selectedShowTitle}" from your favorites? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

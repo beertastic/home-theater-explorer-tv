@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -377,6 +376,136 @@ app.get('/api/media/random', (req, res) => {
     }));
 
     res.json(processedResults);
+  });
+});
+
+// Check file system and database consistency for media
+app.get('/api/media/:id/verify', (req, res) => {
+  const mediaId = req.params.id;
+  const fs = require('fs');
+  const path = require('path');
+
+  // Get media info from database
+  const mediaQuery = `
+    SELECT m.*, GROUP_CONCAT(g.name) as genres, mf.file_path
+    FROM media m
+    LEFT JOIN media_genres mg ON m.id = mg.media_id
+    LEFT JOIN genres g ON mg.genre_id = g.id
+    LEFT JOIN media_files mf ON m.id = mf.media_id
+    WHERE m.id = ?
+    GROUP BY m.id
+  `;
+
+  db.query(mediaQuery, [mediaId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (results.length === 0) {
+      return res.json({
+        databaseExists: false,
+        fileSystemExists: false,
+        status: 'missing'
+      });
+    }
+
+    const media = results[0];
+    let fileSystemExists = false;
+    let filePath = media.file_path;
+
+    // If no file path in database, construct expected path
+    if (!filePath) {
+      const mediaType = media.type === 'tv' ? 'tv' : 'movies';
+      filePath = `/media/${mediaType}/${media.title} (${media.year})`;
+    }
+
+    // Check if file/directory exists
+    try {
+      if (fs.existsSync(filePath)) {
+        fileSystemExists = true;
+      }
+    } catch (error) {
+      console.log('File system check error:', error.message);
+      fileSystemExists = false;
+    }
+
+    // Determine overall status
+    let status = 'verified';
+    if (!fileSystemExists) {
+      status = 'file-missing';
+    }
+
+    res.json({
+      databaseExists: true,
+      fileSystemExists,
+      status,
+      filePath,
+      media: {
+        ...media,
+        genre: media.genres ? media.genres.split(',') : []
+      }
+    });
+  });
+});
+
+// Bulk verify recently added media (last 24 hours)
+app.get('/api/media/verify-recent', (req, res) => {
+  const hoursAgo = parseInt(req.query.hours) || 24;
+  
+  const query = `
+    SELECT m.*, GROUP_CONCAT(g.name) as genres
+    FROM media m
+    LEFT JOIN media_genres mg ON m.id = mg.media_id
+    LEFT JOIN genres g ON mg.genre_id = g.id
+    WHERE m.date_added >= DATE_SUB(NOW(), INTERVAL ? HOUR)
+    GROUP BY m.id
+    ORDER BY m.date_added DESC
+  `;
+
+  db.query(query, [hoursAgo], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    const verificationResults = [];
+    const fs = require('fs');
+
+    for (const media of results) {
+      const mediaType = media.type === 'tv' ? 'tv' : 'movies';
+      const expectedPath = `/media/${mediaType}/${media.title} (${media.year})`;
+      
+      let fileSystemExists = false;
+      try {
+        fileSystemExists = fs.existsSync(expectedPath);
+      } catch (error) {
+        fileSystemExists = false;
+      }
+
+      let status = 'verified';
+      if (!fileSystemExists) {
+        status = 'file-missing';
+      }
+
+      verificationResults.push({
+        id: media.id,
+        title: media.title,
+        type: media.type,
+        year: media.year,
+        dateAdded: media.date_added,
+        databaseExists: true,
+        fileSystemExists,
+        status,
+        filePath: expectedPath,
+        genre: media.genres ? media.genres.split(',') : []
+      });
+    }
+
+    res.json({
+      totalChecked: verificationResults.length,
+      verified: verificationResults.filter(r => r.status === 'verified').length,
+      issues: verificationResults.filter(r => r.status !== 'verified').length,
+      results: verificationResults
+    });
   });
 });
 
