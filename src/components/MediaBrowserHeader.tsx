@@ -84,7 +84,7 @@ const MediaBrowserHeader = ({
             isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
           >
             <Settings className="h-4 w-4" />
-            Settings
+            Verify new files
           </FocusableButton>
         </div>
       </div>
