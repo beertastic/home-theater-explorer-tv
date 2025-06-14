@@ -47,4 +47,5 @@ export interface MediaItem {
   technicalInfo?: MediaTechnicalInfo;
   isFavorite?: boolean;
   nextEpisodeDate?: string; // For TV shows, when the next episode is expected
+  nextEpisodeName?: string; // New field for the next episode name
 }

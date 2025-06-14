@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Star, Calendar, Clock, Play, Download, Trash2, X } from 'lucide-react';
+import { Star, Calendar, Clock, Play, Download, Trash2, X, Tv } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
@@ -126,6 +127,15 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
               />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white text-lg truncate">{media.title}</h3>
+                
+                {/* Episode name for TV shows */}
+                {media.type === 'tv' && media.nextEpisodeName && (
+                  <div className="flex items-center gap-1 text-blue-300 text-sm mt-1">
+                    <Tv className="h-3 w-3" />
+                    <span className="truncate">{media.nextEpisodeName}</span>
+                  </div>
+                )}
+                
                 <p className="text-gray-300 text-sm flex items-center gap-1 mt-1">
                   {isNew ? (
                     <>
