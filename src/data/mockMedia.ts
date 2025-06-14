@@ -38,7 +38,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-01-10',
     watchStatus: 'in-progress',
     isFavorite: true,
-    nextEpisodeDate: '2024-07-15',
+    nextEpisodeDate: '2025-07-15',
     progress: {
       currentEpisode: 2,
       totalEpisodes: 8,
@@ -196,7 +196,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2023-10-01',
     watchStatus: 'in-progress',
     isFavorite: true,
-    nextEpisodeDate: '2024-08-20',
+    nextEpisodeDate: '2025-06-21',
     progress: {
       currentEpisode: 5,
       totalEpisodes: 16,
@@ -285,7 +285,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-01-05',
     watchStatus: 'in-progress',
     isFavorite: true,
-    nextEpisodeDate: '2024-06-25',
+    nextEpisodeDate: '2025-01-25',
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: 'Dolby Atmos',
@@ -309,7 +309,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-01-08',
     watchStatus: 'watched',
     isFavorite: true,
-    nextEpisodeDate: '2024-07-01',
+    nextEpisodeDate: '2025-07-01',
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: 'Dolby Atmos',
@@ -333,7 +333,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-02-01',
     watchStatus: 'in-progress',
     isFavorite: true,
-    nextEpisodeDate: '2024-09-15',
+    nextEpisodeDate: '2025-09-15',
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: '5.1',
@@ -357,7 +357,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-02-10',
     watchStatus: 'unwatched',
     isFavorite: true,
-    nextEpisodeDate: '2024-10-31',
+    nextEpisodeDate: '2025-10-31',
     technicalInfo: {
       videoCodec: 'H.264',
       audioFormat: 'Stereo',
@@ -381,7 +381,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-02-15',
     watchStatus: 'watched',
     isFavorite: true,
-    nextEpisodeDate: '2024-11-20',
+    nextEpisodeDate: '2025-11-20',
     technicalInfo: {
       videoCodec: 'H.264',
       audioFormat: 'Stereo',
@@ -428,7 +428,7 @@ export const mockMedia: MediaItem[] = [
     dateAdded: '2024-02-25',
     watchStatus: 'in-progress',
     isFavorite: true,
-    nextEpisodeDate: '2024-12-15',
+    nextEpisodeDate: '2025-12-15',
     technicalInfo: {
       videoCodec: 'H.265',
       audioFormat: 'Dolby Atmos',
@@ -553,6 +553,102 @@ export const mockMedia: MediaItem[] = [
       subtitles: ['en', 'es', 'fr'],
       fileSize: '16.2 GB',
       bitrate: '28 Mbps'
+    }
+  },
+  {
+    id: '19',
+    title: 'Better Call Saul',
+    type: 'tv',
+    year: 2015,
+    rating: 8.9,
+    duration: '6 Seasons',
+    description: 'The trials and tribulations of criminal lawyer Jimmy McGill in the time before he established his strip-mall law office in Albuquerque.',
+    thumbnail: 'https://images.unsplash.com/photo-1603386493294-59f9a66dd677?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1603386493294-59f9a66dd677?w=800&h=450&fit=crop',
+    genre: ['Crime', 'Drama'],
+    dateAdded: '2024-03-25',
+    watchStatus: 'in-progress',
+    isFavorite: true,
+    nextEpisodeDate: '2025-06-21',
+    technicalInfo: {
+      videoCodec: 'H.264',
+      audioFormat: '5.1',
+      resolution: '1080p',
+      subtitles: ['en', 'es'],
+      fileSize: '3.2 GB',
+      bitrate: '8 Mbps'
+    }
+  },
+  {
+    id: '20',
+    title: 'Andor',
+    type: 'tv',
+    year: 2022,
+    rating: 8.4,
+    duration: '1 Season',
+    description: 'Prequel series to Star Wars\' Rogue One. In an era filled with danger, deception and intrigue, Cassian Andor embarks on the path that is destined to turn him into a rebel hero.',
+    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=450&fit=crop',
+    genre: ['Action', 'Adventure', 'Sci-Fi'],
+    dateAdded: '2024-04-01',
+    watchStatus: 'watched',
+    isFavorite: true,
+    nextEpisodeDate: '2025-08-12',
+    technicalInfo: {
+      videoCodec: 'H.265',
+      audioFormat: 'Dolby Atmos',
+      resolution: '4K',
+      subtitles: ['en', 'es', 'fr'],
+      fileSize: '9.8 GB',
+      bitrate: '20 Mbps'
+    }
+  },
+  {
+    id: '21',
+    title: 'Rings of Power',
+    type: 'tv',
+    year: 2022,
+    rating: 6.9,
+    duration: '2 Seasons',
+    description: 'Epic drama set thousands of years before the events of J.R.R. Tolkien\'s The Hobbit and The Lord of the Rings.',
+    thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=450&fit=crop',
+    genre: ['Adventure', 'Drama', 'Fantasy'],
+    dateAdded: '2024-04-05',
+    watchStatus: 'unwatched',
+    isFavorite: true,
+    nextEpisodeDate: '2025-03-15',
+    technicalInfo: {
+      videoCodec: 'H.265',
+      audioFormat: 'Dolby Atmos',
+      resolution: '4K',
+      subtitles: ['en', 'es', 'fr', 'de'],
+      fileSize: '13.5 GB',
+      bitrate: '28 Mbps'
+    }
+  },
+  {
+    id: '22',
+    title: 'Severance',
+    type: 'tv',
+    year: 2022,
+    rating: 8.7,
+    duration: '1 Season',
+    description: 'Mark leads a team of office workers whose memories have been surgically divided between their work and personal lives.',
+    thumbnail: 'https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=300&h=450&fit=crop',
+    backdrop: 'https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=800&h=450&fit=crop',
+    genre: ['Drama', 'Mystery', 'Sci-Fi'],
+    dateAdded: '2024-04-10',
+    watchStatus: 'in-progress',
+    isFavorite: true,
+    nextEpisodeDate: '2025-01-17',
+    technicalInfo: {
+      videoCodec: 'H.264',
+      audioFormat: 'Stereo',
+      resolution: '1080p',
+      subtitles: ['en', 'es'],
+      fileSize: '2.8 GB',
+      bitrate: '10 Mbps'
     }
   }
 ];
