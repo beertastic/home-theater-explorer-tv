@@ -28,6 +28,7 @@ const MediaBrowserHeader = ({
   lastUpdated
 }: MediaBrowserHeaderProps) => {
   const [showProgress, setShowProgress] = useState(false);
+  const [isUpdateComplete, setIsUpdateComplete] = useState(false);
   const [tvProgress, setTvProgress] = useState(0);
   const [movieProgress, setMovieProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
@@ -59,6 +60,7 @@ const MediaBrowserHeader = ({
 
   const handleRescanWithProgress = () => {
     setShowProgress(true);
+    setIsUpdateComplete(false);
     setTvProgress(0);
     setMovieProgress(0);
     setNewFilesFound(0);
@@ -105,12 +107,15 @@ const MediaBrowserHeader = ({
         stepIndex++;
       } else {
         clearInterval(interval);
-        setTimeout(() => {
-          setShowProgress(false);
-          onRescan();
-        }, 1500);
+        setIsUpdateComplete(true);
+        onRescan();
       }
     }, 900);
+  };
+
+  const handleCloseProgress = () => {
+    setShowProgress(false);
+    setIsUpdateComplete(false);
   };
 
   return (
@@ -164,6 +169,7 @@ const MediaBrowserHeader = ({
 
       <LibraryUpdateProgress
         isVisible={showProgress}
+        isComplete={isUpdateComplete}
         currentStep={currentStep}
         tvProgress={tvProgress}
         movieProgress={movieProgress}
@@ -172,6 +178,7 @@ const MediaBrowserHeader = ({
         dbFileCount={dbFileCount}
         newFilesFound={newFilesFound}
         newlyFoundContent={newlyFoundContent}
+        onClose={handleCloseProgress}
       />
     </>
   );

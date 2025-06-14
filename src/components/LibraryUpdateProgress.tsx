@@ -2,10 +2,12 @@
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { FolderOpen, Database, CheckCircle, Tv, Film, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FolderOpen, Database, CheckCircle, Tv, Film, Plus, X } from 'lucide-react';
 
 interface LibraryUpdateProgressProps {
   isVisible: boolean;
+  isComplete: boolean;
   currentStep: string;
   tvProgress: number;
   movieProgress: number;
@@ -19,10 +21,12 @@ interface LibraryUpdateProgressProps {
     season?: number;
     episode?: number;
   }>;
+  onClose: () => void;
 }
 
 const LibraryUpdateProgress = ({
   isVisible,
+  isComplete,
   currentStep,
   tvProgress,
   movieProgress,
@@ -30,18 +34,33 @@ const LibraryUpdateProgress = ({
   movieFolderCount,
   dbFileCount,
   newFilesFound,
-  newlyFoundContent
+  newlyFoundContent,
+  onClose
 }: LibraryUpdateProgressProps) => {
   if (!isVisible) return null;
 
   return (
     <div className="mt-6 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-      <h3 className="text-white text-lg font-semibold mb-4">Updating Library</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-white text-lg font-semibold">
+          {isComplete ? 'Library Update Complete' : 'Updating Library'}
+        </h3>
+        {isComplete && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
       
       <div className="space-y-4">
         <div className="flex items-center gap-3 text-gray-300 text-sm">
           <Database className="h-4 w-4 text-green-400" />
-          <span>Checking {dbFileCount} database entries</span>
+          <span>Checked {dbFileCount} database entries</span>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -53,7 +72,7 @@ const LibraryUpdateProgress = ({
             </div>
             <div className="flex items-center gap-3 text-gray-300 text-sm">
               <FolderOpen className="h-4 w-4 text-blue-400" />
-              <span>Scanning {tvFolderCount} TV folders</span>
+              <span>Scanned {tvFolderCount} TV folders</span>
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-sm text-gray-300">
@@ -72,7 +91,7 @@ const LibraryUpdateProgress = ({
             </div>
             <div className="flex items-center gap-3 text-gray-300 text-sm">
               <FolderOpen className="h-4 w-4 text-orange-400" />
-              <span>Scanning {movieFolderCount} movie folders</span>
+              <span>Scanned {movieFolderCount} movie folders</span>
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-sm text-gray-300">
