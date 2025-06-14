@@ -1,8 +1,18 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Calendar, Clock } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { format, parseISO, isAfter } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ComingSoonProps {
   mediaData: MediaItem[];
@@ -10,6 +20,10 @@ interface ComingSoonProps {
 }
 
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
+  const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
+  const [selectedShowId, setSelectedShowId] = useState<string>('');
+  const [selectedShowTitle, setSelectedShowTitle] = useState<string>('');
+
   // Get favorite TV shows with upcoming episodes
   const upcomingShows = mediaData
     .filter(item => {
@@ -25,6 +39,23 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     .slice(0, 8); // Show max 8 shows
 
   console.log(`Found ${upcomingShows.length} upcoming shows:`, upcomingShows.map(s => s.title));
+
+  const handleFavoriteClick = (showId: string, showTitle: string, isFavorite: boolean) => {
+    if (isFavorite) {
+      setSelectedShowId(showId);
+      setSelectedShowTitle(showTitle);
+      setShowRemoveFavoriteDialog(true);
+    } else {
+      onToggleFavorite(showId);
+    }
+  };
+
+  const handleConfirmRemoveFavorite = () => {
+    onToggleFavorite(selectedShowId);
+    setShowRemoveFavoriteDialog(false);
+    setSelectedShowId('');
+    setSelectedShowTitle('');
+  };
 
   if (upcomingShows.length === 0) {
     console.log('No upcoming shows found, not rendering Coming Soon section');
@@ -57,7 +88,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
               </div>
             </div>
             <button
-              onClick={() => onToggleFavorite(show.id)}
+              onClick={() => handleFavoriteClick(show.id, show.title, show.isFavorite)}
               className="p-1 hover:bg-slate-600 rounded transition-colors"
             >
               <Heart className="h-4 w-4 text-red-500 fill-current" />
@@ -65,6 +96,23 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
           </div>
         ))}
       </div>
+
+      <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from Favorites?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{selectedShowTitle}" from your favorites? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
