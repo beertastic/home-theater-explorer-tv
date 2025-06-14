@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Edit3, Download, Play, Wifi, WifiOff } from 'lucide-react';
+import { Heart, Edit3, Download, Play, Wifi, WifiOff, Trash2 } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { useLocalDownloads } from '@/hooks/useLocalDownloads';
 import EpisodeList from './EpisodeList';
@@ -30,6 +30,7 @@ interface MediaModalProps {
 
 const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus, onToggleFavorite, onUpdateMetadata }: MediaModalProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
+  const [showRemoveLocalDialog, setShowRemoveLocalDialog] = useState(false);
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
@@ -38,6 +39,7 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
     getLocalFile,
     startDownload,
     getDownloadProgress,
+    deleteLocalFile,
   } = useLocalDownloads();
 
   const handleFavoriteClick = () => {
@@ -53,7 +55,15 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
     setShowRemoveFavoriteDialog(false);
   };
 
-  // Generate placeholder images
+  const handleRemoveLocal = () => {
+    setShowRemoveLocalDialog(true);
+  };
+
+  const handleConfirmRemoveLocal = () => {
+    deleteLocalFile(media.id);
+    setShowRemoveLocalDialog(false);
+  };
+
   const getPlaceholderImage = (width: number, height: number, text: string) => {
     const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
     const colorIndex = Math.abs(text.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
@@ -124,6 +134,13 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
   const isDownloading = getDownloadProgress(media.id)?.status === 'downloading';
   const isOfflineAvailable = hasLocalCopy(media.id);
   const localFile = getLocalFile(media.id);
+
+  const formatFileSize = (bytes: number) => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
 
   return (
     <>
@@ -203,10 +220,21 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
                   )}
 
                   {isOfflineAvailable && localFile && (
-                    <div className="w-full p-2 bg-green-600/20 border border-green-600 text-green-300 rounded-xl text-center text-sm">
-                      <WifiOff className="h-4 w-4 inline mr-2" />
-                      Available Offline • {(localFile.fileSize / (1024 * 1024)).toFixed(1)} MB
-                    </div>
+                    <>
+                      <div className="w-full p-2 bg-green-600/20 border border-green-600 text-green-300 rounded-xl text-center text-sm">
+                        <WifiOff className="h-4 w-4 inline mr-2" />
+                        Available Offline • {formatFileSize(localFile.fileSize)}
+                      </div>
+                      
+                      {/* Remove from Local button */}
+                      <button
+                        onClick={handleRemoveLocal}
+                        className="w-full flex items-center justify-center gap-2 p-2 bg-red-600/20 border border-red-600 text-red-300 hover:bg-red-600/30 rounded-xl transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remove from Local
+                      </button>
+                    </>
                   )}
 
                   {/* Favorite button */}
@@ -256,6 +284,28 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
                 Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Remove Local Dialog */}
+        <AlertDialog open={showRemoveLocalDialog} onOpenChange={setShowRemoveLocalDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove from Local Storage</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove "{media.title}" from your local storage? 
+                This will free up {localFile ? formatFileSize(localFile.fileSize) : ''} of space, but you'll need to download it again to watch offline.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleConfirmRemoveLocal}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Remove from Local
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
