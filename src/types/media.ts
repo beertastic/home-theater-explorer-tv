@@ -25,6 +25,7 @@ export interface Episode {
   thumbnail: string;
   airDate: string;
   watchStatus: 'watched' | 'unwatched';
+  technicalInfo?: MediaTechnicalInfo;
 }
 
 export interface MediaItem {

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Play, Eye, EyeOff, Calendar, Clock, CheckCircle, Circle } from 'lucide-react';
+import { Play, Eye, EyeOff, Calendar, Clock, CheckCircle, Circle, Monitor, Volume2, Subtitles } from 'lucide-react';
 import { Episode } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,6 +11,7 @@ interface EpisodeListProps {
 
 const EpisodeList = ({ episodes, onUpdateEpisodeStatus }: EpisodeListProps) => {
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set([1]));
+  const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Group episodes by season
@@ -32,6 +33,16 @@ const EpisodeList = ({ episodes, onUpdateEpisodeStatus }: EpisodeListProps) => {
     setExpandedSeasons(newExpanded);
   };
 
+  const toggleEpisodeDetails = (episodeId: string) => {
+    const newExpanded = new Set(expandedEpisodes);
+    if (newExpanded.has(episodeId)) {
+      newExpanded.delete(episodeId);
+    } else {
+      newExpanded.add(episodeId);
+    }
+    setExpandedEpisodes(newExpanded);
+  };
+
   const handleEpisodeStatusUpdate = (episodeId: string, status: 'watched' | 'unwatched') => {
     onUpdateEpisodeStatus(episodeId, status);
     toast({
@@ -47,6 +58,22 @@ const EpisodeList = ({ episodes, onUpdateEpisodeStatus }: EpisodeListProps) => {
       month: 'short', 
       day: 'numeric' 
     });
+  };
+
+  const getSubtitleLanguages = (codes: string[]) => {
+    const languageNames: { [key: string]: string } = {
+      'en': 'English',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'it': 'Italian',
+      'pt': 'Portuguese',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'zh': 'Chinese'
+    };
+    
+    return codes.map(code => languageNames[code] || code).join(', ');
   };
 
   return (
@@ -93,76 +120,126 @@ const EpisodeList = ({ episodes, onUpdateEpisodeStatus }: EpisodeListProps) => {
                 <div className="space-y-2">
                   {seasonEpisodes
                     .sort((a, b) => a.episodeNumber - b.episodeNumber)
-                    .map((episode) => (
-                      <div
-                        key={episode.id}
-                        className="bg-slate-800/50 rounded-lg p-4 hover:bg-slate-800 transition-colors"
-                      >
-                        <div className="flex items-start gap-4">
-                          {/* Episode Number Circle */}
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                            episode.watchStatus === 'watched' 
-                              ? 'bg-green-600 text-white' 
-                              : 'bg-slate-700 text-gray-300'
-                          }`}>
-                            {episode.watchStatus === 'watched' ? (
-                              <CheckCircle className="h-5 w-5" />
-                            ) : (
-                              episode.episodeNumber
-                            )}
-                          </div>
+                    .map((episode) => {
+                      const isEpisodeExpanded = expandedEpisodes.has(episode.id);
+                      
+                      return (
+                        <div
+                          key={episode.id}
+                          className="bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors"
+                        >
+                          <div className="p-4">
+                            <div className="flex items-start gap-4">
+                              {/* Episode Number Circle */}
+                              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                                episode.watchStatus === 'watched' 
+                                  ? 'bg-green-600 text-white' 
+                                  : 'bg-slate-700 text-gray-300'
+                              }`}>
+                                {episode.watchStatus === 'watched' ? (
+                                  <CheckCircle className="h-5 w-5" />
+                                ) : (
+                                  episode.episodeNumber
+                                )}
+                              </div>
 
-                          {/* Episode Info */}
-                          <div className="flex-grow">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h5 className="text-white font-semibold mb-1">
-                                  {episode.episodeNumber}. {episode.title}
-                                </h5>
-                                <div className="flex items-center gap-4 text-sm text-gray-400 mb-2">
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    <span>{episode.duration}</span>
+                              {/* Episode Info */}
+                              <div className="flex-grow">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <h5 className="text-white font-semibold mb-1">
+                                      {episode.episodeNumber}. {episode.title}
+                                    </h5>
+                                    <div className="flex items-center gap-4 text-sm text-gray-400 mb-2">
+                                      <div className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        <span>{episode.duration}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        <span>{formatAirDate(episode.airDate)}</span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    <span>{formatAirDate(episode.airDate)}</span>
+                                  
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center gap-2">
+                                    <button className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                                      <Play className="h-4 w-4 text-white fill-current" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEpisodeStatusUpdate(
+                                        episode.id, 
+                                        episode.watchStatus === 'watched' ? 'unwatched' : 'watched'
+                                      )}
+                                      className={`p-2 rounded-lg transition-colors ${
+                                        episode.watchStatus === 'watched'
+                                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                                          : 'bg-slate-700 hover:bg-slate-600 text-gray-300'
+                                      }`}
+                                    >
+                                      {episode.watchStatus === 'watched' ? (
+                                        <Eye className="h-4 w-4" />
+                                      ) : (
+                                        <EyeOff className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                    {episode.technicalInfo && (
+                                      <button
+                                        onClick={() => toggleEpisodeDetails(episode.id)}
+                                        className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-gray-300"
+                                      >
+                                        <Monitor className="h-4 w-4" />
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
-                              </div>
-                              
-                              {/* Action Buttons */}
-                              <div className="flex items-center gap-2">
-                                <button className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                                  <Play className="h-4 w-4 text-white fill-current" />
-                                </button>
-                                <button
-                                  onClick={() => handleEpisodeStatusUpdate(
-                                    episode.id, 
-                                    episode.watchStatus === 'watched' ? 'unwatched' : 'watched'
-                                  )}
-                                  className={`p-2 rounded-lg transition-colors ${
-                                    episode.watchStatus === 'watched'
-                                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                                      : 'bg-slate-700 hover:bg-slate-600 text-gray-300'
-                                  }`}
-                                >
-                                  {episode.watchStatus === 'watched' ? (
-                                    <Eye className="h-4 w-4" />
-                                  ) : (
-                                    <EyeOff className="h-4 w-4" />
-                                  )}
-                                </button>
+                                
+                                <p className="text-gray-400 text-sm leading-relaxed mb-3">
+                                  {episode.description}
+                                </p>
+
+                                {/* Technical Info */}
+                                {episode.technicalInfo && isEpisodeExpanded && (
+                                  <div className="mt-3 p-3 bg-slate-900/50 rounded-lg">
+                                    <h6 className="text-white font-medium mb-2 flex items-center gap-2">
+                                      <Monitor className="h-4 w-4" />
+                                      Technical Information
+                                    </h6>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                      <div className="flex items-center gap-2 text-gray-300">
+                                        <Monitor className="h-3 w-3 text-blue-400" />
+                                        <span>{episode.technicalInfo.videoCodec} • {episode.technicalInfo.resolution}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-gray-300">
+                                        <Volume2 className="h-3 w-3 text-green-400" />
+                                        <span>{episode.technicalInfo.audioFormat}</span>
+                                      </div>
+                                      {episode.technicalInfo.subtitles.length > 0 && (
+                                        <div className="flex items-center gap-2 text-gray-300 md:col-span-2">
+                                          <Subtitles className="h-3 w-3 text-yellow-400" />
+                                          <span>Subtitles: {getSubtitleLanguages(episode.technicalInfo.subtitles)}</span>
+                                        </div>
+                                      )}
+                                      {episode.technicalInfo.fileSize && (
+                                        <div className="text-gray-400">
+                                          Size: {episode.technicalInfo.fileSize}
+                                        </div>
+                                      )}
+                                      {episode.technicalInfo.bitrate && (
+                                        <div className="text-gray-400">
+                                          Bitrate: {episode.technicalInfo.bitrate}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            
-                            <p className="text-gray-400 text-sm leading-relaxed">
-                              {episode.description}
-                            </p>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>

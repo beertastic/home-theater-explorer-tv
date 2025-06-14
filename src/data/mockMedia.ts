@@ -1,4 +1,3 @@
-
 import { MediaItem } from '@/types/media';
 
 export const mockMedia: MediaItem[] = [
@@ -53,7 +52,15 @@ export const mockMedia: MediaItem[] = [
         duration: '47m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E1',
         airDate: '2016-07-15',
-        watchStatus: 'watched'
+        watchStatus: 'watched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '1.2 GB',
+          bitrate: '8 Mbps'
+        }
       },
       {
         id: '2',
@@ -64,7 +71,15 @@ export const mockMedia: MediaItem[] = [
         duration: '55m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E2',
         airDate: '2016-07-15',
-        watchStatus: 'watched'
+        watchStatus: 'watched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '1.4 GB',
+          bitrate: '8 Mbps'
+        }
       },
       {
         id: '3',
@@ -75,7 +90,15 @@ export const mockMedia: MediaItem[] = [
         duration: '51m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E3',
         airDate: '2016-07-15',
-        watchStatus: 'unwatched'
+        watchStatus: 'unwatched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '1.3 GB',
+          bitrate: '8 Mbps'
+        }
       }
     ],
     technicalInfo: {
@@ -182,7 +205,15 @@ export const mockMedia: MediaItem[] = [
         duration: '58m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E1',
         airDate: '2008-01-20',
-        watchStatus: 'watched'
+        watchStatus: 'watched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '2.1 GB',
+          bitrate: '12 Mbps'
+        }
       },
       {
         id: '2',
@@ -193,7 +224,15 @@ export const mockMedia: MediaItem[] = [
         duration: '48m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E2',
         airDate: '2008-01-27',
-        watchStatus: 'watched'
+        watchStatus: 'watched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '1.8 GB',
+          bitrate: '12 Mbps'
+        }
       },
       {
         id: '3',
@@ -204,7 +243,15 @@ export const mockMedia: MediaItem[] = [
         duration: '48m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E3',
         airDate: '2008-02-03',
-        watchStatus: 'watched'
+        watchStatus: 'watched',
+        technicalInfo: {
+          videoCodec: 'H.264',
+          audioFormat: 'Stereo',
+          resolution: '1080p',
+          subtitles: ['en', 'es'],
+          fileSize: '1.9 GB',
+          bitrate: '12 Mbps'
+        }
       }
     ],
     technicalInfo: {
