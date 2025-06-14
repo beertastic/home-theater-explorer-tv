@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { FolderOpen, Database, CheckCircle, Tv, Film } from 'lucide-react';
+import { FolderOpen, Database, CheckCircle, Tv, Film, Plus } from 'lucide-react';
 
 interface LibraryUpdateProgressProps {
   isVisible: boolean;
@@ -12,6 +13,12 @@ interface LibraryUpdateProgressProps {
   movieFolderCount: number;
   dbFileCount: number;
   newFilesFound: number;
+  newlyFoundContent: Array<{
+    type: 'movie' | 'tv';
+    title: string;
+    season?: number;
+    episode?: number;
+  }>;
 }
 
 const LibraryUpdateProgress = ({
@@ -22,7 +29,8 @@ const LibraryUpdateProgress = ({
   tvFolderCount,
   movieFolderCount,
   dbFileCount,
-  newFilesFound
+  newFilesFound,
+  newlyFoundContent
 }: LibraryUpdateProgressProps) => {
   if (!isVisible) return null;
 
@@ -87,6 +95,35 @@ const LibraryUpdateProgress = ({
             </div>
           )}
         </div>
+
+        {/* Newly Found Content */}
+        {newlyFoundContent.length > 0 && (
+          <div className="mt-4 p-3 bg-slate-700/50 rounded-lg">
+            <div className="flex items-center gap-2 text-green-400 text-sm font-medium mb-2">
+              <Plus className="h-4 w-4" />
+              <span>Recently Added</span>
+            </div>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {newlyFoundContent.map((item, index) => (
+                <div key={index} className="flex items-center gap-2 text-gray-300 text-xs">
+                  {item.type === 'tv' ? (
+                    <Tv className="h-3 w-3 text-blue-400" />
+                  ) : (
+                    <Film className="h-3 w-3 text-orange-400" />
+                  )}
+                  <span className="truncate">
+                    {item.title}
+                    {item.season && item.episode && (
+                      <span className="text-gray-400 ml-1">
+                        S{item.season.toString().padStart(2, '0')} E{item.episode.toString().padStart(2, '0')}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Shuffle, RotateCcw, Settings, Calendar } from 'lucide-react';
 import DownloadsManager from './DownloadsManager';
@@ -32,10 +31,16 @@ const MediaBrowserHeader = ({
   const [tvProgress, setTvProgress] = useState(0);
   const [movieProgress, setMovieProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
-  const [tvFolderCount] = useState(143); // Fake TV folder count
-  const [movieFolderCount] = useState(104); // Fake movie folder count
-  const [dbFileCount] = useState(1842); // Fake database file count
+  const [tvFolderCount] = useState(143);
+  const [movieFolderCount] = useState(104);
+  const [dbFileCount] = useState(1842);
   const [newFilesFound, setNewFilesFound] = useState(0);
+  const [newlyFoundContent, setNewlyFoundContent] = useState<Array<{
+    type: 'movie' | 'tv';
+    title: string;
+    season?: number;
+    episode?: number;
+  }>>([]);
 
   const formatLastUpdated = (dateString: string) => {
     const date = new Date(dateString);
@@ -57,8 +62,19 @@ const MediaBrowserHeader = ({
     setTvProgress(0);
     setMovieProgress(0);
     setNewFilesFound(0);
+    setNewlyFoundContent([]);
     
-    // Simulate separate progress for TV and Movies
+    // Fake newly found content
+    const fakeNewContent = [
+      { type: 'movie' as const, title: 'The Matrix Resurrections' },
+      { type: 'tv' as const, title: 'Breaking Bad', season: 3, episode: 7 },
+      { type: 'movie' as const, title: 'Dune: Part Two' },
+      { type: 'tv' as const, title: 'Stranger Things', season: 4, episode: 9 },
+      { type: 'tv' as const, title: 'The Mandalorian', season: 2, episode: 8 },
+      { type: 'movie' as const, title: 'Oppenheimer' },
+      { type: 'tv' as const, title: 'House of the Dragon', season: 1, episode: 10 },
+    ];
+    
     const steps = [
       { tv: 0, movie: 0, step: 'Initializing scan...' },
       { tv: 10, movie: 5, step: 'Scanning TV show folders...' },
@@ -81,7 +97,9 @@ const MediaBrowserHeader = ({
         
         // Simulate finding new files at certain steps
         if (stepIndex === 6) {
-          setNewFilesFound(Math.floor(Math.random() * 12) + 3); // 3-14 new files
+          const newCount = Math.floor(Math.random() * 7) + 3; // 3-9 new files
+          setNewFilesFound(newCount);
+          setNewlyFoundContent(fakeNewContent.slice(0, newCount));
         }
         
         stepIndex++;
@@ -89,7 +107,7 @@ const MediaBrowserHeader = ({
         clearInterval(interval);
         setTimeout(() => {
           setShowProgress(false);
-          onRescan(); // Call the original rescan function
+          onRescan();
         }, 1500);
       }
     }, 900);
@@ -153,6 +171,7 @@ const MediaBrowserHeader = ({
         movieFolderCount={movieFolderCount}
         dbFileCount={dbFileCount}
         newFilesFound={newFilesFound}
+        newlyFoundContent={newlyFoundContent}
       />
     </>
   );

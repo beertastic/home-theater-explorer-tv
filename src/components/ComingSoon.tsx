@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play, Download, Trash2, X, Tv } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
@@ -75,7 +74,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     const today = new Date();
     return mediaData.filter(media => {
       if (!media.nextEpisodeDate) return false;
-      if (media.watchStatus === 'watched') return false; // Filter out watched media
+      if (media.watchStatus === 'watched') return false;
       const nextAirDate = new Date(media.nextEpisodeDate);
       return nextAirDate >= today;
     }).sort((a, b) => new Date(b.nextEpisodeDate!).getTime() - new Date(a.nextEpisodeDate!).getTime());
@@ -83,9 +82,9 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
 
   const getNewlyAddedMedia = () => {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 7); // Consider media added in the last 7 days as "new"
+    cutoff.setDate(cutoff.getDate() - 7);
     return mediaData.filter(media => {
-      if (media.watchStatus === 'watched') return false; // Filter out watched media
+      if (media.watchStatus === 'watched') return false;
       return new Date(media.dateAdded) >= cutoff;
     }).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
   };
@@ -94,8 +93,21 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     const newlyAddedMedia = getNewlyAddedMedia();
     const upcomingMedia = getUpcomingMedia();
     
-    // Combine new media first, then upcoming media, limit to 6 items
     return [...newlyAddedMedia, ...upcomingMedia].slice(0, 6);
+  };
+
+  const getSeasonEpisodeInfo = (media: MediaItem) => {
+    if (media.type !== 'tv' || !media.progress) return null;
+    
+    // Generate fake season/episode info based on progress
+    const currentEpisode = media.progress.currentEpisode || 1;
+    const season = Math.floor((currentEpisode - 1) / 12) + 1; // Assume 12 episodes per season
+    const episodeInSeason = ((currentEpisode - 1) % 12) + 1;
+    
+    return {
+      season: season,
+      episode: episodeInSeason + 1 // Next episode
+    };
   };
 
   const sortedMedia = getAllSortedMedia();
@@ -117,6 +129,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
           const isNew = getNewlyAddedMedia().some(newMedia => newMedia.id === media.id);
           const hasDownload = hasLocalCopy(media.id);
           const downloadProgress = getDownloadProgress(media.id);
+          const seasonEpisodeInfo = getSeasonEpisodeInfo(media);
           
           return (
             <div key={media.id} className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800/70 transition-colors">
@@ -128,11 +141,18 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white text-lg truncate">{media.title}</h3>
                 
-                {/* Episode name for TV shows */}
+                {/* Episode name for TV shows with season/episode info */}
                 {media.type === 'tv' && media.nextEpisodeName && (
                   <div className="flex items-center gap-1 text-blue-300 text-sm mt-1">
                     <Tv className="h-3 w-3" />
-                    <span className="truncate">{media.nextEpisodeName}</span>
+                    <span className="truncate">
+                      {seasonEpisodeInfo && (
+                        <span className="text-gray-400 mr-2">
+                          S{seasonEpisodeInfo.season.toString().padStart(2, '0')} E{seasonEpisodeInfo.episode.toString().padStart(2, '0')}
+                        </span>
+                      )}
+                      {media.nextEpisodeName}
+                    </span>
                   </div>
                 )}
                 
