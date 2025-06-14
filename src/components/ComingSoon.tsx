@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Calendar, Clock, Play, Download, Trash2 } from 'lucide-react';
+import { Star, Calendar, Clock, Play, Download, Trash2, X } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
@@ -22,9 +22,11 @@ interface ComingSoonProps {
 
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   const [mediaToRemove, setMediaToRemove] = useState<MediaItem | null>(null);
+  const [mediaToDelete, setMediaToDelete] = useState<MediaItem | null>(null);
   const [playingMedia, setPlayingMedia] = useState<MediaItem | null>(null);
-  const { hasLocalCopy, startDownload, deleteLocalFile, getDownloadProgress } = useLocalDownloads();
+  const { hasLocalCopy, startDownload, deleteLocalFile, getDownloadProgress, cancelDownload } = useLocalDownloads();
 
   const handleFavoriteClick = (media: MediaItem) => {
     if (media.isFavorite) {
@@ -52,7 +54,20 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   };
 
   const handleRemoveDownload = (media: MediaItem) => {
-    deleteLocalFile(media.id);
+    setMediaToDelete(media);
+    setShowDeleteConfirmDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (mediaToDelete) {
+      deleteLocalFile(mediaToDelete.id);
+    }
+    setShowDeleteConfirmDialog(false);
+    setMediaToDelete(null);
+  };
+
+  const handleCancelDownload = (media: MediaItem) => {
+    cancelDownload(media.id);
   };
 
   const getUpcomingMedia = () => {
@@ -159,11 +174,18 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
+                ) : downloadProgress ? (
+                  <button
+                    onClick={() => handleCancelDownload(media)}
+                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
+                    title="Cancel download"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleDownload(media)}
-                    disabled={!!downloadProgress}
-                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors disabled:opacity-50"
+                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors"
                     title="Download for offline viewing"
                   >
                     <Download className="h-5 w-5" />
@@ -191,7 +213,7 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
         />
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Remove Favorite Confirmation Dialog */}
       <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -204,6 +226,27 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmRemoveFavorite}>
               Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Download Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Download?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{mediaToDelete?.title}" from your downloads? This will free up storage space but you'll need to download it again to watch offline.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Remove Download
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
