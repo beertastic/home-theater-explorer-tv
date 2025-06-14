@@ -734,6 +734,124 @@ app.get('/api/stats/library', (req, res) => {
   }
 });
 
+// Add episode data for existing TV show
+app.post('/api/media/:id/populate-episodes', async (req, res) => {
+  const mediaId = req.params.id;
+
+  try {
+    // First, get the media item to ensure it's a TV show
+    const mediaQuery = 'SELECT * FROM media WHERE id = ? AND type = "tv"';
+    
+    db.query(mediaQuery, [mediaId], async (err, mediaResults) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (mediaResults.length === 0) {
+        return res.status(404).json({ error: 'TV show not found' });
+      }
+
+      const media = mediaResults[0];
+      
+      try {
+        // Search TMDB for the show to get the TMDB ID
+        const searchResponse = await tmdbApi.get('/search/tv', {
+          params: { 
+            query: media.title,
+            first_air_date_year: media.year
+          }
+        });
+
+        if (searchResponse.data.results.length === 0) {
+          return res.status(404).json({ error: 'Show not found on TMDB' });
+        }
+
+        const tmdbShow = searchResponse.data.results[0];
+        console.log(`Found TMDB show: ${tmdbShow.name} (ID: ${tmdbShow.id})`);
+
+        // Get detailed show information including seasons
+        const showDetailsResponse = await tmdbApi.get(`/tv/${tmdbShow.id}`);
+        const showDetails = showDetailsResponse.data;
+
+        let totalEpisodesAdded = 0;
+
+        // Fetch episodes for each season
+        for (const season of showDetails.seasons) {
+          if (season.season_number === 0) continue; // Skip specials
+
+          try {
+            const seasonResponse = await tmdbApi.get(`/tv/${tmdbShow.id}/season/${season.season_number}`);
+            const seasonData = seasonResponse.data;
+
+            console.log(`Processing Season ${season.season_number} with ${seasonData.episodes.length} episodes`);
+
+            // Insert each episode
+            for (const episode of seasonData.episodes) {
+              const episodeInsertQuery = `
+                INSERT INTO episodes (
+                  media_id, title, episode_number, season_number, 
+                  description, duration, air_date, date_added, watch_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'unwatched')
+              `;
+
+              const duration = episode.runtime ? `${episode.runtime}m` : '45m'; // Default to 45m if no runtime
+              const airDate = episode.air_date || new Date().toISOString().split('T')[0];
+
+              await new Promise((resolve, reject) => {
+                db.query(episodeInsertQuery, [
+                  mediaId,
+                  episode.name || `Episode ${episode.episode_number}`,
+                  episode.episode_number,
+                  episode.season_number,
+                  episode.overview || '',
+                  duration,
+                  airDate
+                ], (err, result) => {
+                  if (err) {
+                    console.error(`Error inserting episode ${episode.episode_number}:`, err);
+                    reject(err);
+                  } else {
+                    totalEpisodesAdded++;
+                    resolve(result);
+                  }
+                });
+              });
+            }
+          } catch (seasonError) {
+            console.error(`Error fetching season ${season.season_number}:`, seasonError.message);
+          }
+        }
+
+        // Update the media item with total episodes
+        const updateMediaQuery = 'UPDATE media SET total_episodes = ? WHERE id = ?';
+        db.query(updateMediaQuery, [totalEpisodesAdded, mediaId], (err) => {
+          if (err) {
+            console.error('Error updating total episodes:', err);
+          }
+        });
+
+        res.json({
+          success: true,
+          message: `Successfully added ${totalEpisodesAdded} episodes for ${media.title}`,
+          episodesAdded: totalEpisodesAdded,
+          seasons: showDetails.seasons.length
+        });
+
+      } catch (tmdbError) {
+        console.error('TMDB API error:', tmdbError.message);
+        res.status(500).json({ 
+          error: 'Failed to fetch episode data from TMDB',
+          details: tmdbError.message 
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error populating episodes:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Media Center API running on port ${port}`);
 });

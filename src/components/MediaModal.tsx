@@ -8,6 +8,7 @@ import MediaModalInfo from './modal/MediaModalInfo';
 import MediaVerificationStatus from './MediaVerificationStatus';
 import MetadataEditor from './MetadataEditor';
 import VideoPlayer from './VideoPlayer';
+import EpisodePopulator from './EpisodePopulator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -142,6 +143,11 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  const handleEpisodesPopulated = () => {
+    // Trigger a refresh of the media data
+    window.location.reload(); // Simple refresh for now
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -262,11 +268,21 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
             </div>
 
             {/* Episode List for TV Shows */}
-            {media.type === 'tv' && media.episodes && (
-              <EpisodeList 
-                episodes={media.episodes} 
-                onUpdateEpisodeStatus={handleEpisodeStatusUpdate}
-              />
+            {media.type === 'tv' && (
+              <>
+                {media.episodes && media.episodes.length > 0 ? (
+                  <EpisodeList 
+                    episodes={media.episodes} 
+                    onUpdateEpisodeStatus={handleEpisodeStatusUpdate}
+                  />
+                ) : (
+                  <EpisodePopulator
+                    mediaId={media.id}
+                    mediaTitle={media.title}
+                    onEpisodesPopulated={handleEpisodesPopulated}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
