@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
@@ -6,6 +6,8 @@ import RandomMovieSelector from './RandomMovieSelector';
 import MediaPagination from './MediaPagination';
 import MediaScanner from './MediaScanner';
 import ComingSoon from './ComingSoon';
+import FocusableButton from './FocusableButton';
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
 import { mockMedia } from '@/data/mockMedia';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
@@ -17,10 +19,53 @@ const MediaBrowser = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [mediaData, setMediaData] = useState<MediaItem[]>(mockMedia);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8); // Changed from 24 to 8 items per page
+  const [itemsPerPage] = useState(8);
   const [isRandomSelectorOpen, setIsRandomSelectorOpen] = useState(false);
   const [isMediaScannerOpen, setIsMediaScannerOpen] = useState(false);
   const { toast } = useToast();
+
+  const filterRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const actionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const mediaRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const navigationItems = useMemo(() => {
+    const items = [];
+    
+    filterRefs.current.forEach((ref, index) => {
+      if (ref) {
+        items.push({
+          id: `filter-${index}`,
+          element: ref,
+          section: 'filters'
+        });
+      }
+    });
+
+    actionRefs.current.forEach((ref, index) => {
+      if (ref) {
+        items.push({
+          id: `action-${index}`,
+          element: ref,
+          section: 'actions'
+        });
+      }
+    });
+
+    mediaRefs.current.forEach((ref, index) => {
+      if (ref) {
+        items.push({
+          id: `media-${index}`,
+          element: ref,
+          section: 'media-grid'
+        });
+      }
+    });
+
+    return items;
+  }, []);
+
+  const { focusedIndex, focusedSection } = useKeyboardNavigation(navigationItems);
 
   const handleRescan = async () => {
     setIsScanning(true);
@@ -29,12 +74,11 @@ const MediaBrowser = () => {
       description: "Looking for new content on your NAS",
     });
 
-    // Simulate scanning process
     setTimeout(() => {
       setIsScanning(false);
       toast({
         title: "Scan complete!",
-        description: "Found 0 new items", // In real implementation, this would show actual count
+        description: "Found 0 new items",
       });
     }, 3000);
   };
@@ -49,7 +93,6 @@ const MediaBrowser = () => {
       title: "Library scan complete!",
       description: `Added ${addedCount} new items to your library`,
     });
-    // In real implementation, this would refresh the media data
   };
 
   const handleToggleFavorite = (id: string) => {
@@ -59,7 +102,6 @@ const MediaBrowser = () => {
       )
     );
     
-    // Update selected media if it's currently open
     if (selectedMedia && selectedMedia.id === id) {
       setSelectedMedia(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
     }
@@ -78,7 +120,6 @@ const MediaBrowser = () => {
       )
     );
     
-    // Update selected media if it's currently open
     if (selectedMedia && selectedMedia.id === id) {
       setSelectedMedia(prev => prev ? { ...prev, watchStatus: status } : null);
     }
@@ -97,7 +138,6 @@ const MediaBrowser = () => {
             episode.id === episodeId ? { ...episode, watchStatus: status } : episode
           );
           
-          // Update overall watch status based on episodes
           const watchedCount = updatedEpisodes.filter(ep => ep.watchStatus === 'watched').length;
           const totalCount = updatedEpisodes.length;
           let newWatchStatus: 'unwatched' | 'in-progress' | 'watched';
@@ -126,7 +166,6 @@ const MediaBrowser = () => {
       })
     );
     
-    // Update selected media if it's currently open
     if (selectedMedia && selectedMedia.id === mediaId) {
       setSelectedMedia(prev => {
         if (!prev || !prev.episodes) return prev;
@@ -153,7 +192,7 @@ const MediaBrowser = () => {
       
       switch (activeFilter) {
         case 'recently-added':
-          matchesFilter = true; // Show all types for recently added
+          matchesFilter = true;
           break;
         case 'in-progress':
           matchesFilter = item.watchStatus === 'in-progress';
@@ -169,7 +208,6 @@ const MediaBrowser = () => {
       return matchesSearch && matchesFilter;
     });
 
-    // Sort by appropriate criteria
     if (activeFilter === 'recently-added') {
       filtered = filtered.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
     } else if (activeFilter === 'in-progress') {
@@ -183,12 +221,10 @@ const MediaBrowser = () => {
     return filtered;
   }, [searchQuery, activeFilter, mediaData]);
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeFilter]);
@@ -215,6 +251,20 @@ const MediaBrowser = () => {
     }
   };
 
+  useEffect(() => {
+    if (filterRefs.current[0]) {
+      filterRefs.current[0].focus();
+    }
+  }, []);
+
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'in-progress', label: 'In Progress' },
+    { key: 'recently-added', label: 'Recently Added' },
+    { key: 'movie', label: 'Movies' },
+    { key: 'tv', label: 'TV Shows' }
+  ];
+
   return (
     <div className="min-h-screen p-8">
       {/* Header */}
@@ -223,42 +273,46 @@ const MediaBrowser = () => {
           <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Media Center
           </h1>
-          <p className="text-xl text-gray-300">Your personal media collection</p>
+          <p className="text-xl text-gray-300">Your personal media collection • Use arrow keys to navigate</p>
         </div>
         
         {/* Action Buttons */}
         <div className="flex gap-3">
-          {/* Random Movie Picker Button */}
-          <button
+          <FocusableButton
+            ref={(el) => actionRefs.current[0] = el}
+            variant="action"
             onClick={() => setIsRandomSelectorOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-purple-600/25"
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-0'}
           >
             <Sparkles className="h-5 w-5" />
             Random Pick
-          </button>
+          </FocusableButton>
 
-          {/* Metadata Scanner Button */}
-          <button
+          <FocusableButton
+            ref={(el) => actionRefs.current[1] = el}
+            variant="action"
             onClick={handleOpenScanner}
-            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-green-600/25"
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
+            className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
           >
             <Info className="h-5 w-5" />
             Verify Metadata
-          </button>
+          </FocusableButton>
 
-          {/* Update/Rescan Button */}
-          <button
+          <FocusableButton
+            ref={(el) => actionRefs.current[2] = el}
+            variant="action"
             onClick={handleRescan}
             disabled={isScanning}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-              isScanning 
-                ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
-            }`}
+            isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
+            className={isScanning 
+              ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
+            }
           >
             <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
             {isScanning ? 'Scanning...' : 'Update Library'}
-          </button>
+          </FocusableButton>
         </div>
       </div>
 
@@ -273,6 +327,7 @@ const MediaBrowser = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           <input
+            ref={searchRef}
             type="text"
             placeholder="Search movies, shows, genres..."
             value={searchQuery}
@@ -282,24 +337,17 @@ const MediaBrowser = () => {
         </div>
         
         <div className="flex gap-2">
-          {[
-            { key: 'all', label: 'All' },
-            { key: 'in-progress', label: 'In Progress' },
-            { key: 'recently-added', label: 'Recently Added' },
-            { key: 'movie', label: 'Movies' },
-            { key: 'tv', label: 'TV Shows' }
-          ].map(filter => (
-            <button
+          {filters.map((filter, index) => (
+            <FocusableButton
               key={filter.key}
+              ref={(el) => filterRefs.current[index] = el}
+              variant="filter"
               onClick={() => setActiveFilter(filter.key as typeof activeFilter)}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                activeFilter === filter.key
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                  : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/50 hover:text-white'
-              }`}
+              isActive={activeFilter === filter.key}
+              isFocused={focusedSection === 'filters' && navigationItems[focusedIndex]?.id === `filter-${index}`}
             >
               {filter.label}
-            </button>
+            </FocusableButton>
           ))}
         </div>
       </div>
@@ -314,13 +362,15 @@ const MediaBrowser = () => {
 
       {/* Media Grid with pagination */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-        {paginatedMedia.map((media) => (
+        {paginatedMedia.map((media, index) => (
           <MediaCard
             key={media.id}
+            ref={(el) => mediaRefs.current[index] = el}
             media={media}
             onClick={() => setSelectedMedia(media)}
             showDateAdded={activeFilter === 'recently-added'}
             onToggleFavorite={handleToggleFavorite}
+            isFocused={focusedSection === 'media-grid' && navigationItems[focusedIndex]?.id === `media-${index}`}
           />
         ))}
       </div>

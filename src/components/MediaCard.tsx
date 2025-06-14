@@ -1,16 +1,23 @@
-
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Play, Star, Clock, Calendar, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
 import { MediaItem } from '@/types/media';
+import { cn } from '@/lib/utils';
 
 interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
   showDateAdded?: boolean;
   onToggleFavorite: (id: string) => void;
+  isFocused?: boolean;
 }
 
-const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: MediaCardProps) => {
+const MediaCard = forwardRef<HTMLDivElement, MediaCardProps>(({ 
+  media, 
+  onClick, 
+  showDateAdded = false, 
+  onToggleFavorite,
+  isFocused = false 
+}, ref) => {
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -44,7 +51,6 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
     }
   };
 
-  // Generate a more reliable placeholder image
   const getPlaceholderImage = () => {
     const colors = ['334155', '475569', '64748b', '6366f1', '8b5cf6', 'ef4444', 'f59e0b', '10b981'];
     const colorIndex = Math.abs(media.title.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length;
@@ -54,8 +60,15 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
 
   return (
     <div
+      ref={ref}
       onClick={onClick}
-      className="group relative cursor-pointer transform transition-all duration-300 hover:scale-105 hover:z-10"
+      className={cn(
+        "group relative cursor-pointer transform transition-all duration-300 hover:scale-105 hover:z-10 outline-none",
+        isFocused && "ring-4 ring-blue-400/60 ring-offset-2 ring-offset-slate-900 scale-105 z-20"
+      )}
+      tabIndex={isFocused ? 0 : -1}
+      role="button"
+      aria-label={`Play ${media.title}`}
     >
       {/* Thumbnail */}
       <div className="relative aspect-[2/3] bg-slate-800 rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/25 transition-all duration-300">
@@ -83,7 +96,10 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
         )}
         
         {/* Play overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+        <div className={cn(
+          "absolute inset-0 flex items-center justify-center transition-opacity duration-300 z-20",
+          isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        )}>
           <div className="bg-blue-600 rounded-full p-4 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
             <Play className="h-8 w-8 text-white fill-current" />
           </div>
@@ -144,6 +160,8 @@ const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: 
       </div>
     </div>
   );
-};
+});
+
+MediaCard.displayName = 'MediaCard';
 
 export default MediaCard;
