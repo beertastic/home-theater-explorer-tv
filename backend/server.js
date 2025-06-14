@@ -737,6 +737,8 @@ app.get('/api/stats/library', (req, res) => {
 // Add episode data for existing TV show
 app.post('/api/media/:id/populate-episodes', async (req, res) => {
   const mediaId = req.params.id;
+  
+  console.log(`Starting episode population for media ID: ${mediaId}`);
 
   try {
     // First, get the media item to ensure it's a TV show
@@ -744,17 +746,36 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
     
     db.query(mediaQuery, [mediaId], async (err, mediaResults) => {
       if (err) {
-        return res.status(500).json({ error: err.message });
+        console.error('Database error when fetching media:', err);
+        return res.status(500).json({ 
+          success: false,
+          error: 'Database error: ' + err.message 
+        });
       }
 
       if (mediaResults.length === 0) {
-        return res.status(404).json({ error: 'TV show not found' });
+        console.log(`No TV show found with ID: ${mediaId}`);
+        return res.status(404).json({ 
+          success: false,
+          error: 'TV show not found' 
+        });
       }
 
       const media = mediaResults[0];
+      console.log(`Found TV show: ${media.title} (${media.year})`);
       
       try {
+        // Check if TMDB API key is available
+        if (!process.env.TMDB_API_KEY) {
+          console.error('TMDB API key is missing');
+          return res.status(500).json({
+            success: false,
+            error: 'TMDB API key not configured'
+          });
+        }
+
         // Search TMDB for the show to get the TMDB ID
+        console.log(`Searching TMDB for: ${media.title} (${media.year})`);
         const searchResponse = await tmdbApi.get('/search/tv', {
           params: { 
             query: media.title,
@@ -763,7 +784,11 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
         });
 
         if (searchResponse.data.results.length === 0) {
-          return res.status(404).json({ error: 'Show not found on TMDB' });
+          console.log(`No TMDB results found for: ${media.title}`);
+          return res.status(404).json({ 
+            success: false,
+            error: 'Show not found on TMDB' 
+          });
         }
 
         const tmdbShow = searchResponse.data.results[0];
@@ -772,6 +797,7 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
         // Get detailed show information including seasons
         const showDetailsResponse = await tmdbApi.get(`/tv/${tmdbShow.id}`);
         const showDetails = showDetailsResponse.data;
+        console.log(`Show has ${showDetails.seasons.length} seasons`);
 
         let totalEpisodesAdded = 0;
 
@@ -780,6 +806,7 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
           if (season.season_number === 0) continue; // Skip specials
 
           try {
+            console.log(`Fetching season ${season.season_number}...`);
             const seasonResponse = await tmdbApi.get(`/tv/${tmdbShow.id}/season/${season.season_number}`);
             const seasonData = seasonResponse.data;
 
@@ -830,6 +857,7 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
           }
         });
 
+        console.log(`Successfully added ${totalEpisodesAdded} episodes for ${media.title}`);
         res.json({
           success: true,
           message: `Successfully added ${totalEpisodesAdded} episodes for ${media.title}`,
@@ -839,16 +867,20 @@ app.post('/api/media/:id/populate-episodes', async (req, res) => {
 
       } catch (tmdbError) {
         console.error('TMDB API error:', tmdbError.message);
+        console.error('TMDB Error details:', tmdbError.response?.data || 'No additional details');
         res.status(500).json({ 
-          error: 'Failed to fetch episode data from TMDB',
-          details: tmdbError.message 
+          success: false,
+          error: 'Failed to fetch episode data from TMDB: ' + tmdbError.message
         });
       }
     });
 
   } catch (error) {
-    console.error('Error populating episodes:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Unexpected error in populate-episodes:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Unexpected error: ' + error.message 
+    });
   }
 });
 

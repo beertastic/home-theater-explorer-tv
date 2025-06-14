@@ -17,6 +17,8 @@ const EpisodePopulator = ({ mediaId, mediaTitle, onEpisodesPopulated }: EpisodeP
     setIsPopulating(true);
     
     try {
+      console.log(`Attempting to populate episodes for media ID: ${mediaId}`);
+      
       const response = await fetch(`http://192.168.1.94:3001/api/media/${mediaId}/populate-episodes`, {
         method: 'POST',
         headers: {
@@ -24,7 +26,20 @@ const EpisodePopulator = ({ mediaId, mediaTitle, onEpisodesPopulated }: EpisodeP
         },
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      // Check if the response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Server returned non-JSON response. Content-Type:', contentType);
+        const textResponse = await response.text();
+        console.error('Response body:', textResponse.substring(0, 500)); // Log first 500 chars
+        throw new Error(`Server returned HTML instead of JSON. This usually indicates a server error. Check server logs.`);
+      }
+
       const data = await response.json();
+      console.log('Parsed JSON response:', data);
 
       if (data.success) {
         toast({
@@ -37,9 +52,15 @@ const EpisodePopulator = ({ mediaId, mediaTitle, onEpisodesPopulated }: EpisodeP
       }
     } catch (error) {
       console.error('Error populating episodes:', error);
+      
+      let errorMessage = 'Failed to fetch episodes';
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to fetch episodes: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
