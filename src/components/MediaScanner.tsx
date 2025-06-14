@@ -49,11 +49,11 @@ const MediaScanner = ({ isOpen, onClose, onScanComplete }: MediaScannerProps) =>
           description: `Found ${data.totalFound} folders to review`,
         });
       } else {
-        throw new Error(data.error || 'Failed to scan folders');
+        throw new Error('Failed to scan folders');
       }
     } catch (err) {
       console.error('Failed to scan folders:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       toast({
         title: "Scan failed",
         description: "Could not scan media folders. Check backend logs.",
