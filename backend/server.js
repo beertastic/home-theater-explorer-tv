@@ -29,7 +29,11 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
+  connectTimeout: 20000, // 20 seconds
+  acquireTimeout: 20000,
+  timeout: 20000,
+  reconnect: true
 };
 
 console.log('MySQL Connection Config:');
@@ -45,9 +49,22 @@ const db = mysql.createConnection(dbConfig);
 db.connect((err) => {
   if (err) {
     console.error('Database connection failed:', err);
+    console.error('Error details:');
+    console.error('- Code:', err.code);
+    console.error('- Errno:', err.errno);
+    console.error('- Message:', err.message);
     return;
   }
   console.log('Connected to MySQL database');
+});
+
+// Handle connection errors
+db.on('error', (err) => {
+  console.error('Database error:', err);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.log('Attempting to reconnect to database...');
+    // Handle reconnection logic here if needed
+  }
 });
 
 // TMDB API helper
