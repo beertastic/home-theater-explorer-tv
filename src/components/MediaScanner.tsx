@@ -1,8 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FolderOpen, CheckCircle, AlertCircle, SkipForward } from 'lucide-react';
 import MetadataVerificationModal from './MetadataVerificationModal';
 import { useToast } from '@/hooks/use-toast';
+import { apiService } from '@/services/apiService';
 
 interface ScannedFolder {
   id: string;
@@ -19,44 +19,58 @@ interface MediaScannerProps {
 }
 
 const MediaScanner = ({ isOpen, onClose, onScanComplete }: MediaScannerProps) => {
-  const [scannedFolders, setScannedFolders] = useState<ScannedFolder[]>([
-    {
-      id: '1',
-      path: '/media/tv/Doctor Who (2005)',
-      name: 'Doctor Who (2005)',
-      status: 'pending',
-      detectedMetadata: {
-        id: 'auto-1',
-        title: 'Doctor Who (1963)',
-        year: 1963,
-        overview: 'The original long-running British science fiction television series.',
-        poster_path: '/placeholder.svg',
-        backdrop_path: '/placeholder.svg',
-        vote_average: 8.4,
-        type: 'tv'
-      }
-    },
-    {
-      id: '2',
-      path: '/media/movies/Interstellar (2014)',
-      name: 'Interstellar (2014)',
-      status: 'pending',
-      detectedMetadata: {
-        id: 'auto-2',
-        title: 'Interstellar',
-        year: 2014,
-        overview: 'A team of explorers travel through a wormhole in space.',
-        poster_path: '/placeholder.svg',
-        backdrop_path: '/placeholder.svg',
-        vote_average: 8.6,
-        type: 'movie'
-      }
-    }
-  ]);
-  
+  const [scannedFolders, setScannedFolders] = useState<ScannedFolder[]>([]);
   const [currentFolder, setCurrentFolder] = useState<ScannedFolder | null>(null);
   const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Load actual folders from file system when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadFoldersFromFileSystem();
+    }
+  }, [isOpen]);
+
+  const loadFoldersFromFileSystem = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Scanning file system for media folders...');
+      const response = await fetch(`${apiService.API_BASE_URL}/scan/folders`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to scan folders: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Scan results:', data);
+      
+      if (data.success) {
+        setScannedFolders(data.folders || []);
+        toast({
+          title: "Folder scan complete",
+          description: `Found ${data.totalFound} folders to review`,
+        });
+      } else {
+        throw new Error(data.error || 'Failed to scan folders');
+      }
+    } catch (err) {
+      console.error('Failed to scan folders:', err);
+      setError(err.message);
+      toast({
+        title: "Scan failed",
+        description: "Could not scan media folders. Check backend logs.",
+        variant: "destructive"
+      });
+      // Fallback to empty array instead of hardcoded data
+      setScannedFolders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -131,86 +145,124 @@ const MediaScanner = ({ isOpen, onClose, onScanComplete }: MediaScannerProps) =>
             <p className="text-gray-400">Review and verify detected metadata before adding to your library</p>
           </div>
 
-          {/* Folder list */}
-          <div className="p-6">
-            <div className="space-y-4">
-              {scannedFolders.map((folder) => (
-                <div
-                  key={folder.id}
-                  className={`border-2 rounded-xl p-4 transition-all ${getStatusColor(folder.status)}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(folder.status)}
-                      <div>
-                        <h3 className="text-white font-semibold">{folder.name}</h3>
-                        <p className="text-gray-400 text-sm">{folder.path}</p>
-                        {folder.detectedMetadata && (
-                          <p className="text-gray-300 text-sm mt-1">
-                            Detected: {folder.detectedMetadata.title} ({folder.detectedMetadata.year})
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {folder.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleVerifyMetadata(folder)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-                          >
-                            Verify
-                          </button>
-                          <button
-                            onClick={() => handleSkipFolder(folder.id)}
-                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
-                          >
-                            Skip
-                          </button>
-                        </>
-                      )}
-                      {folder.status !== 'pending' && (
-                        <button
-                          onClick={() => handleVerifyMetadata(folder)}
-                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
-                        >
-                          Review
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {/* Loading state */}
+          {isLoading && (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-white">Scanning your media folders...</p>
             </div>
+          )}
 
-            {/* Summary and finish button */}
-            <div className="mt-8 pt-6 border-t border-slate-700">
-              <div className="flex items-center justify-between">
-                <div className="text-gray-300">
-                  <p>
-                    {scannedFolders.filter(f => f.status === 'verified').length} items will be added, {' '}
-                    {scannedFolders.filter(f => f.status === 'skipped').length} skipped, {' '}
-                    {scannedFolders.filter(f => f.status === 'pending').length} pending
+          {/* Error state */}
+          {error && (
+            <div className="p-6 text-center">
+              <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-white font-semibold mb-2">Scan Failed</h3>
+              <p className="text-gray-400 mb-4">{error}</p>
+              <button
+                onClick={loadFoldersFromFileSystem}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+              >
+                Retry Scan
+              </button>
+            </div>
+          )}
+
+          {/* Results */}
+          {!isLoading && !error && (
+            <div className="p-6">
+              {scannedFolders.length === 0 ? (
+                <div className="text-center py-8">
+                  <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-white font-semibold mb-2">No New Folders Found</h3>
+                  <p className="text-gray-400">
+                    No new media folders were detected in your library paths.
+                    Check your backend environment variables for correct media paths.
                   </p>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={onClose}
-                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleFinishScan}
-                    className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors"
-                  >
-                    Finish Scan
-                  </button>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    {scannedFolders.map((folder) => (
+                      <div
+                        key={folder.id}
+                        className={`border-2 rounded-xl p-4 transition-all ${getStatusColor(folder.status)}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {getStatusIcon(folder.status)}
+                            <div>
+                              <h3 className="text-white font-semibold">{folder.name}</h3>
+                              <p className="text-gray-400 text-sm">{folder.path}</p>
+                              {folder.detectedMetadata && (
+                                <p className="text-gray-300 text-sm mt-1">
+                                  Detected: {folder.detectedMetadata.title} ({folder.detectedMetadata.year})
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            {folder.status === 'pending' && (
+                              <>
+                                <button
+                                  onClick={() => handleVerifyMetadata(folder)}
+                                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                                >
+                                  Verify
+                                </button>
+                                <button
+                                  onClick={() => handleSkipFolder(folder.id)}
+                                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
+                                >
+                                  Skip
+                                </button>
+                              </>
+                            )}
+                            {folder.status !== 'pending' && (
+                              <button
+                                onClick={() => handleVerifyMetadata(folder)}
+                                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
+                              >
+                                Review
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Summary and finish button */}
+                  <div className="mt-8 pt-6 border-t border-slate-700">
+                    <div className="flex items-center justify-between">
+                      <div className="text-gray-300">
+                        <p>
+                          {scannedFolders.filter(f => f.status === 'verified').length} items will be added, {' '}
+                          {scannedFolders.filter(f => f.status === 'skipped').length} skipped, {' '}
+                          {scannedFolders.filter(f => f.status === 'pending').length} pending
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={onClose}
+                          className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleFinishScan}
+                          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors"
+                        >
+                          Finish Scan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 

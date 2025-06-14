@@ -97,6 +97,13 @@ export const apiService = {
     return response.json();
   },
 
+  // Scan file system for folders
+  async scanFolders(): Promise<{ success: boolean; folders: any[]; totalFound: number }> {
+    const response = await fetch(`${API_BASE_URL}/scan/folders`);
+    if (!response.ok) throw new Error('Failed to scan folders');
+    return response.json();
+  },
+
   // Test TMDB connection
   async testTMDB() {
     const response = await fetch(`${API_BASE_URL}/tmdb/test`);

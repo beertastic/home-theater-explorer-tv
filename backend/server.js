@@ -586,6 +586,91 @@ app.get('/api/media/verify-recent', (req, res) => {
   });
 });
 
+// Scan file system for new media folders
+app.get('/api/scan/folders', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    const scannedFolders = [];
+    
+    // Get library paths from environment
+    const movieLibraryPath = process.env.MOVIES_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+    const tvLibraryPath = process.env.TV_LIBRARY_PATH || process.env.MEDIA_LIBRARY_PATH;
+    
+    console.log('Scanning movie library:', movieLibraryPath);
+    console.log('Scanning TV library:', tvLibraryPath);
+    
+    // Helper function to scan a directory
+    const scanDirectory = (libraryPath, mediaType) => {
+      if (!libraryPath || !fs.existsSync(libraryPath)) {
+        console.log(`Library path does not exist: ${libraryPath}`);
+        return;
+      }
+      
+      try {
+        const items = fs.readdirSync(libraryPath, { withFileTypes: true });
+        
+        items.forEach((item, index) => {
+          if (item.isDirectory()) {
+            const fullPath = path.join(libraryPath, item.name);
+            
+            // Try to extract title and year from folder name
+            const match = item.name.match(/^(.+?)\s*\((\d{4})\)$/);
+            const title = match ? match[1].trim() : item.name;
+            const year = match ? parseInt(match[2]) : new Date().getFullYear();
+            
+            scannedFolders.push({
+              id: `${mediaType}-${index}-${Date.now()}`,
+              path: fullPath,
+              name: item.name,
+              status: 'pending',
+              detectedMetadata: {
+                id: `auto-${mediaType}-${index}`,
+                title: title,
+                year: year,
+                overview: `Detected ${mediaType} from file system: ${title}`,
+                poster_path: '/placeholder.svg',
+                backdrop_path: '/placeholder.svg',
+                vote_average: 0,
+                type: mediaType
+              }
+            });
+          }
+        });
+      } catch (error) {
+        console.error(`Error scanning ${mediaType} directory:`, error.message);
+      }
+    };
+    
+    // Scan movie library
+    if (movieLibraryPath) {
+      scanDirectory(movieLibraryPath, 'movie');
+    }
+    
+    // Scan TV library (if different from movie library)
+    if (tvLibraryPath && tvLibraryPath !== movieLibraryPath) {
+      scanDirectory(tvLibraryPath, 'tv');
+    }
+    
+    console.log(`Found ${scannedFolders.length} folders to scan`);
+    
+    res.json({
+      success: true,
+      folders: scannedFolders,
+      totalFound: scannedFolders.length
+    });
+    
+  } catch (error) {
+    console.error('Error scanning folders:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      folders: []
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Media Center API running on port ${port}`);
 });
