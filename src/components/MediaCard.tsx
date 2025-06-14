@@ -1,20 +1,7 @@
 
 import React from 'react';
-import { Play, Star, Clock, Calendar, Plus } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  type: 'movie' | 'tv';
-  year: number;
-  rating: number;
-  duration: string;
-  description: string;
-  thumbnail: string;
-  backdrop: string;
-  genre: string[];
-  dateAdded: string;
-}
+import { Play, Star, Clock, Calendar, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
+import { MediaItem } from '@/data/mockMedia';
 
 interface MediaCardProps {
   media: MediaItem;
@@ -35,6 +22,27 @@ const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) =>
     return `Added ${date.toLocaleDateString()}`;
   };
 
+  const getWatchStatusBadge = () => {
+    switch (media.watchStatus) {
+      case 'watched':
+        return (
+          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-600 text-white flex items-center gap-1">
+            <Eye className="h-3 w-3" />
+            WATCHED
+          </span>
+        );
+      case 'in-progress':
+        return (
+          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white flex items-center gap-1">
+            <PlayCircle className="h-3 w-3" />
+            IN PROGRESS
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -53,6 +61,16 @@ const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) =>
           }}
         />
         
+        {/* Progress bar for in-progress items */}
+        {media.watchStatus === 'in-progress' && media.progress?.progressPercent && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50 z-20">
+            <div 
+              className="h-full bg-blue-500 transition-all duration-300"
+              style={{ width: `${media.progress.progressPercent}%` }}
+            />
+          </div>
+        )}
+        
         {/* Play overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
           <div className="bg-blue-600 rounded-full p-4 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
@@ -69,15 +87,17 @@ const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) =>
           </span>
         </div>
 
-        {/* Recently added badge */}
-        {showDateAdded && (
-          <div className="absolute top-3 left-3 z-20">
+        {/* Watch status or Recently added badge */}
+        <div className="absolute top-3 left-3 z-20">
+          {showDateAdded ? (
             <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-600 text-white flex items-center gap-1">
               <Plus className="h-3 w-3" />
               NEW
             </span>
-          </div>
-        )}
+          ) : (
+            getWatchStatusBadge()
+          )}
+        </div>
 
         {/* Bottom info */}
         <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -89,6 +109,16 @@ const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) =>
               <>
                 <Plus className="h-3 w-3" />
                 <span>{formatDateAdded(media.dateAdded)}</span>
+              </>
+            ) : media.watchStatus === 'in-progress' && media.progress ? (
+              <>
+                <PlayCircle className="h-3 w-3" />
+                <span>
+                  {media.type === 'tv' 
+                    ? `Ep ${media.progress.currentEpisode}/${media.progress.totalEpisodes}`
+                    : `${media.progress.progressPercent}%`
+                  }
+                </span>
               </>
             ) : (
               <>

@@ -1,27 +1,15 @@
 
 import React from 'react';
-import { X, Play, Star, Calendar, Clock, Tag, Plus } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  type: 'movie' | 'tv';
-  year: number;
-  rating: number;
-  duration: string;
-  description: string;
-  thumbnail: string;
-  backdrop: string;
-  genre: string[];
-  dateAdded: string;
-}
+import { X, Play, Star, Calendar, Clock, Tag, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
+import { MediaItem } from '@/data/mockMedia';
 
 interface MediaModalProps {
   media: MediaItem;
   onClose: () => void;
+  onUpdateWatchStatus: (id: string, status: 'unwatched' | 'in-progress' | 'watched') => void;
 }
 
-const MediaModal = ({ media, onClose }: MediaModalProps) => {
+const MediaModal = ({ media, onClose, onUpdateWatchStatus }: MediaModalProps) => {
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -29,6 +17,25 @@ const MediaModal = ({ media, onClose }: MediaModalProps) => {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  const formatLastWatched = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'today';
+    if (diffDays <= 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getWatchStatusColor = (status: string) => {
+    switch (status) {
+      case 'watched': return 'bg-green-600';
+      case 'in-progress': return 'bg-blue-600';
+      default: return 'bg-gray-600';
+    }
   };
 
   return (
@@ -61,6 +68,16 @@ const MediaModal = ({ media, onClose }: MediaModalProps) => {
           <button className="absolute bottom-6 left-6 bg-blue-600 hover:bg-blue-700 rounded-full p-4 transition-colors shadow-lg">
             <Play className="h-8 w-8 text-white fill-current" />
           </button>
+
+          {/* Progress bar for in-progress items */}
+          {media.watchStatus === 'in-progress' && media.progress?.progressPercent && (
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/50">
+              <div 
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{ width: `${media.progress.progressPercent}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -82,6 +99,32 @@ const MediaModal = ({ media, onClose }: MediaModalProps) => {
             {/* Info */}
             <div className="lg:w-2/3">
               <h1 className="text-4xl font-bold text-white mb-4">{media.title}</h1>
+              
+              {/* Watch Status */}
+              <div className="mb-6">
+                <div className="flex items-center gap-4 mb-3">
+                  <span className={`px-4 py-2 text-sm font-semibold rounded-full text-white flex items-center gap-2 ${getWatchStatusColor(media.watchStatus)}`}>
+                    {media.watchStatus === 'watched' && <Eye className="h-4 w-4" />}
+                    {media.watchStatus === 'in-progress' && <PlayCircle className="h-4 w-4" />}
+                    {media.watchStatus === 'unwatched' && <EyeOff className="h-4 w-4" />}
+                    {media.watchStatus.charAt(0).toUpperCase() + media.watchStatus.slice(1).replace('-', ' ')}
+                  </span>
+                </div>
+
+                {/* Progress info for in-progress items */}
+                {media.watchStatus === 'in-progress' && media.progress && (
+                  <div className="text-gray-300 text-sm">
+                    {media.type === 'tv' ? (
+                      <p>Episode {media.progress.currentEpisode} of {media.progress.totalEpisodes}</p>
+                    ) : (
+                      <p>{media.progress.progressPercent}% complete</p>
+                    )}
+                    {media.progress.lastWatched && (
+                      <p>Last watched {formatLastWatched(media.progress.lastWatched)}</p>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {/* Meta info */}
               <div className="flex flex-wrap items-center gap-4 mb-6 text-gray-300">
@@ -124,17 +167,40 @@ const MediaModal = ({ media, onClose }: MediaModalProps) => {
               </div>
 
               {/* Description */}
-              <p className="text-gray-300 leading-relaxed text-lg">{media.description}</p>
+              <p className="text-gray-300 leading-relaxed text-lg mb-8">{media.description}</p>
 
               {/* Action buttons */}
-              <div className="mt-8 flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2">
                   <Play className="h-5 w-5 fill-current" />
-                  Play Now
+                  {media.watchStatus === 'in-progress' ? 'Continue Watching' : 'Play Now'}
                 </button>
-                <button className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-                  Add to Playlist
-                </button>
+                
+                {/* Watch Status Controls */}
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => onUpdateWatchStatus(media.id, 'unwatched')}
+                    className={`px-4 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2 ${
+                      media.watchStatus === 'unwatched' 
+                        ? 'bg-gray-600 text-white' 
+                        : 'bg-slate-800 hover:bg-slate-700 text-gray-300'
+                    }`}
+                  >
+                    <EyeOff className="h-4 w-4" />
+                    Unwatched
+                  </button>
+                  <button 
+                    onClick={() => onUpdateWatchStatus(media.id, 'watched')}
+                    className={`px-4 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2 ${
+                      media.watchStatus === 'watched' 
+                        ? 'bg-green-600 text-white' 
+                        : 'bg-slate-800 hover:bg-slate-700 text-gray-300'
+                    }`}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Watched
+                  </button>
+                </div>
               </div>
             </div>
           </div>

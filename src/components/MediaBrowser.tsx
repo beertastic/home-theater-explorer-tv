@@ -3,28 +3,15 @@ import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
-import { mockMediaData } from '@/data/mockMedia';
+import { mockMediaData, MediaItem } from '@/data/mockMedia';
 import { useToast } from '@/hooks/use-toast';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  type: 'movie' | 'tv';
-  year: number;
-  rating: number;
-  duration: string;
-  description: string;
-  thumbnail: string;
-  backdrop: string;
-  genre: string[];
-  dateAdded: string;
-}
 
 const MediaBrowser = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress'>('all');
   const [isScanning, setIsScanning] = useState(false);
+  const [mediaData, setMediaData] = useState<MediaItem[]>(mockMediaData);
   const { toast } = useToast();
 
   const handleRescan = async () => {
@@ -44,27 +31,85 @@ const MediaBrowser = () => {
     }, 3000);
   };
 
+  const handleUpdateWatchStatus = (id: string, status: 'unwatched' | 'in-progress' | 'watched') => {
+    setMediaData(prevData => 
+      prevData.map(item => 
+        item.id === id ? { ...item, watchStatus: status } : item
+      )
+    );
+    
+    // Update selected media if it's currently open
+    if (selectedMedia && selectedMedia.id === id) {
+      setSelectedMedia(prev => prev ? { ...prev, watchStatus: status } : null);
+    }
+
+    toast({
+      title: "Watch status updated",
+      description: `Marked as ${status.replace('-', ' ')}`,
+    });
+  };
+
   const filteredMedia = useMemo(() => {
-    let filtered = mockMediaData.filter(item => {
+    let filtered = mediaData.filter(item => {
       const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            item.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
       
-      if (activeFilter === 'recently-added') {
-        return matchesSearch; // Show all types for recently added
+      let matchesFilter = true;
+      
+      switch (activeFilter) {
+        case 'recently-added':
+          matchesFilter = true; // Show all types for recently added
+          break;
+        case 'in-progress':
+          matchesFilter = item.watchStatus === 'in-progress';
+          break;
+        case 'movie':
+        case 'tv':
+          matchesFilter = item.type === activeFilter;
+          break;
+        default:
+          matchesFilter = true;
       }
       
-      const matchesFilter = activeFilter === 'all' || item.type === activeFilter;
       return matchesSearch && matchesFilter;
     });
 
-    // Sort by date added if recently added view is active
+    // Sort by appropriate criteria
     if (activeFilter === 'recently-added') {
       filtered = filtered.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+    } else if (activeFilter === 'in-progress') {
+      filtered = filtered.sort((a, b) => {
+        const aLastWatched = a.progress?.lastWatched ? new Date(a.progress.lastWatched).getTime() : 0;
+        const bLastWatched = b.progress?.lastWatched ? new Date(b.progress.lastWatched).getTime() : 0;
+        return bLastWatched - aLastWatched;
+      });
     }
 
     return filtered;
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, mediaData]);
+
+  const getFilterLabel = () => {
+    switch (activeFilter) {
+      case 'recently-added':
+        return 'Recently Added';
+      case 'in-progress':
+        return 'Continue Watching';
+      default:
+        return null;
+    }
+  };
+
+  const getFilterDescription = () => {
+    switch (activeFilter) {
+      case 'recently-added':
+        return 'Latest additions to your media library';
+      case 'in-progress':
+        return 'Pick up where you left off';
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen p-8">
@@ -108,13 +153,14 @@ const MediaBrowser = () => {
         <div className="flex gap-2">
           {[
             { key: 'all', label: 'All' },
+            { key: 'in-progress', label: 'In Progress' },
             { key: 'recently-added', label: 'Recently Added' },
             { key: 'movie', label: 'Movies' },
             { key: 'tv', label: 'TV Shows' }
           ].map(filter => (
             <button
               key={filter.key}
-              onClick={() => setActiveFilter(filter.key as 'all' | 'movie' | 'tv' | 'recently-added')}
+              onClick={() => setActiveFilter(filter.key as typeof activeFilter)}
               className={`px-6 py-2 rounded-lg font-medium transition-all ${
                 activeFilter === filter.key
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
@@ -127,11 +173,11 @@ const MediaBrowser = () => {
         </div>
       </div>
 
-      {/* Recently Added Header */}
-      {activeFilter === 'recently-added' && (
+      {/* Filter Header */}
+      {getFilterLabel() && (
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">Recently Added</h2>
-          <p className="text-gray-400">Latest additions to your media library</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{getFilterLabel()}</h2>
+          <p className="text-gray-400">{getFilterDescription()}</p>
         </div>
       )}
 
@@ -149,8 +195,9 @@ const MediaBrowser = () => {
 
       {/* Results count */}
       <div className="mt-8 text-center text-gray-400">
-        Showing {filteredMedia.length} of {mockMediaData.length} items
+        Showing {filteredMedia.length} of {mediaData.length} items
         {activeFilter === 'recently-added' && ' (sorted by date added)'}
+        {activeFilter === 'in-progress' && ' (sorted by last watched)'}
       </div>
 
       {/* Media Modal */}
@@ -158,6 +205,7 @@ const MediaBrowser = () => {
         <MediaModal
           media={selectedMedia}
           onClose={() => setSelectedMedia(null)}
+          onUpdateWatchStatus={handleUpdateWatchStatus}
         />
       )}
     </div>

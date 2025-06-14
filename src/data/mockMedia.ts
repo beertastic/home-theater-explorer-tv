@@ -1,5 +1,26 @@
 
-export const mockMediaData = [
+export interface MediaItem {
+  id: string;
+  title: string;
+  type: 'movie' | 'tv';
+  year: number;
+  rating: number;
+  duration: string;
+  description: string;
+  thumbnail: string;
+  backdrop: string;
+  genre: string[];
+  dateAdded: string;
+  watchStatus: 'unwatched' | 'in-progress' | 'watched';
+  progress?: {
+    currentEpisode?: number;
+    totalEpisodes?: number;
+    lastWatched?: string;
+    progressPercent?: number;
+  };
+}
+
+export const mockMediaData: MediaItem[] = [
   {
     id: '1',
     title: 'The Matrix',
@@ -11,7 +32,8 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1489599511835-c41b1ddce4df?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1489599511835-c41b1ddce4df?w=800&h=450&fit=crop',
     genre: ['Action', 'Sci-Fi'],
-    dateAdded: '2024-06-10'
+    dateAdded: '2024-06-10',
+    watchStatus: 'watched'
   },
   {
     id: '2',
@@ -24,7 +46,14 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=800&h=450&fit=crop',
     genre: ['Drama', 'Fantasy', 'Horror'],
-    dateAdded: '2024-06-12'
+    dateAdded: '2024-06-12',
+    watchStatus: 'in-progress',
+    progress: {
+      currentEpisode: 5,
+      totalEpisodes: 34,
+      lastWatched: '2024-06-13',
+      progressPercent: 15
+    }
   },
   {
     id: '3',
@@ -37,7 +66,8 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&h=450&fit=crop',
     genre: ['Action', 'Sci-Fi', 'Thriller'],
-    dateAdded: '2024-06-08'
+    dateAdded: '2024-06-08',
+    watchStatus: 'unwatched'
   },
   {
     id: '4',
@@ -50,7 +80,14 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=450&fit=crop',
     genre: ['Crime', 'Drama', 'Thriller'],
-    dateAdded: '2024-06-05'
+    dateAdded: '2024-06-05',
+    watchStatus: 'in-progress',
+    progress: {
+      currentEpisode: 25,
+      totalEpisodes: 62,
+      lastWatched: '2024-06-12',
+      progressPercent: 40
+    }
   },
   {
     id: '5',
@@ -63,7 +100,8 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=800&h=450&fit=crop',
     genre: ['Adventure', 'Drama', 'Sci-Fi'],
-    dateAdded: '2024-06-13'
+    dateAdded: '2024-06-13',
+    watchStatus: 'unwatched'
   },
   {
     id: '6',
@@ -76,6 +114,7 @@ export const mockMediaData = [
     thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
     backdrop: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=450&fit=crop',
     genre: ['Biography', 'Drama', 'History'],
-    dateAdded: '2024-06-14'
+    dateAdded: '2024-06-14',
+    watchStatus: 'watched'
   }
 ];
