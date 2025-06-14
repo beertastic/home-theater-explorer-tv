@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { Search, Play, Info, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
@@ -15,6 +16,7 @@ const MediaBrowser = () => {
   const [mediaData, setMediaData] = useState<MediaItem[]>(mockMediaData);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(24); // 24 items per page for good grid layout
+  const [isRandomSelectorOpen, setIsRandomSelectorOpen] = useState(false);
   const { toast } = useToast();
 
   const handleRescan = async () => {
@@ -189,26 +191,32 @@ const MediaBrowser = () => {
           <p className="text-xl text-gray-300">Your personal media collection</p>
         </div>
         
-        {/* Update/Rescan Button */}
-        <button
-          onClick={handleRescan}
-          disabled={isScanning}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-            isScanning 
-              ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
-          }`}
-        >
-          <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-          {isScanning ? 'Scanning...' : 'Update Library'}
-        </button>
-      </div>
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          {/* Random Movie Picker Button */}
+          <button
+            onClick={() => setIsRandomSelectorOpen(true)}
+            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-purple-600/25"
+          >
+            <Sparkles className="h-5 w-5" />
+            Random Pick
+          </button>
 
-      {/* Random Movie Selector */}
-      <RandomMovieSelector 
-        mediaData={mediaData}
-        onSelectMedia={setSelectedMedia}
-      />
+          {/* Update/Rescan Button */}
+          <button
+            onClick={handleRescan}
+            disabled={isScanning}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+              isScanning 
+                ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
+            }`}
+          >
+            <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
+            {isScanning ? 'Scanning...' : 'Update Library'}
+          </button>
+        </div>
+      </div>
 
       {/* Search and Filters */}
       <div className="mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between">
@@ -281,6 +289,14 @@ const MediaBrowser = () => {
         {activeFilter === 'recently-added' && ' (sorted by date added)'}
         {activeFilter === 'in-progress' && ' (sorted by last watched)'}
       </div>
+
+      {/* Random Movie Selector Modal */}
+      <RandomMovieSelector 
+        mediaData={mediaData}
+        onSelectMedia={setSelectedMedia}
+        isOpen={isRandomSelectorOpen}
+        onClose={() => setIsRandomSelectorOpen(false)}
+      />
 
       {/* Media Modal */}
       {selectedMedia && (
