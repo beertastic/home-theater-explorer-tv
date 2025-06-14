@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
+import VideoPlayer from './VideoPlayer';
 import { MediaItem } from '@/types/media';
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ interface ComingSoonProps {
 const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
   const [showRemoveFavoriteDialog, setShowRemoveFavoriteDialog] = useState(false);
   const [mediaToRemove, setMediaToRemove] = useState<MediaItem | null>(null);
+  const [playingMedia, setPlayingMedia] = useState<MediaItem | null>(null);
 
   const handleFavoriteClick = (media: MediaItem) => {
     if (media.isFavorite) {
@@ -38,6 +39,10 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
     }
     setShowRemoveFavoriteDialog(false);
     setMediaToRemove(null);
+  };
+
+  const handlePlayClick = (media: MediaItem) => {
+    setPlayingMedia(media);
   };
 
   const getUpcomingMedia = () => {
@@ -121,7 +126,10 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
                 >
                   <Star className={`h-5 w-5 ${media.isFavorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                 </button>
-                <button className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
+                <button 
+                  onClick={() => handlePlayClick(media)}
+                  className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                >
                   <Play className="h-5 w-5" />
                 </button>
               </div>
@@ -129,6 +137,15 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
           );
         })}
       </div>
+
+      {/* Video Player */}
+      {playingMedia && (
+        <VideoPlayer
+          src={`/api/video/${playingMedia.id}`}
+          title={playingMedia.title}
+          onClose={() => setPlayingMedia(null)}
+        />
+      )}
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showRemoveFavoriteDialog} onOpenChange={setShowRemoveFavoriteDialog}>
