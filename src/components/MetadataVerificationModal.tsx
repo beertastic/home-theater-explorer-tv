@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { X, Search, Check, AlertTriangle, Calendar, Star, Info } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
+import { apiService, TMDBSearchResult } from '@/services/apiService';
 
 interface MetadataMatch {
   id: string;
@@ -44,45 +45,53 @@ const MetadataVerificationModal = ({
 
   if (!isOpen) return null;
 
+  const convertTMDBToMetadataMatch = (tmdbResult: TMDBSearchResult): MetadataMatch => {
+    const isTV = tmdbResult.media_type === 'tv' || tmdbResult.name;
+    const title = isTV ? tmdbResult.name : tmdbResult.title;
+    const releaseDate = isTV ? tmdbResult.first_air_date : tmdbResult.release_date;
+    const year = releaseDate ? new Date(releaseDate).getFullYear() : 0;
+
+    return {
+      id: tmdbResult.id.toString(),
+      title: title || 'Unknown Title',
+      year,
+      overview: tmdbResult.overview || 'No overview available',
+      poster_path: tmdbResult.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbResult.poster_path}` : '',
+      backdrop_path: '', // TMDB search doesn't include backdrop
+      vote_average: tmdbResult.vote_average || 0,
+      type: isTV ? 'tv' : 'movie',
+      first_air_date: tmdbResult.first_air_date,
+      release_date: tmdbResult.release_date,
+    };
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     try {
-      // Mock search results - in real implementation, this would call TMDB/TVDB API
-      const mockResults: MetadataMatch[] = [
-        {
-          id: '1',
-          title: 'Doctor Who (2005)',
-          year: 2005,
-          overview: 'The adventures of the Doctor, a time-traveling alien from the planet Gallifrey.',
-          poster_path: '/poster1.jpg',
-          backdrop_path: '/backdrop1.jpg',
-          vote_average: 8.2,
-          type: 'tv',
-          first_air_date: '2005-03-26',
-          number_of_seasons: 13,
-          number_of_episodes: 154
-        },
-        {
-          id: '2',
-          title: 'Doctor Who (1963)',
-          year: 1963,
-          overview: 'The original long-running British science fiction television series.',
-          poster_path: '/poster2.jpg',
-          backdrop_path: '/backdrop2.jpg',
-          vote_average: 8.4,
-          type: 'tv',
-          first_air_date: '1963-11-23',
-          number_of_seasons: 26,
-          number_of_episodes: 695
-        }
-      ];
-      setSearchResults(mockResults);
+      console.log('Searching TMDB for:', searchQuery);
+      const response = await apiService.searchTMDB(searchQuery);
+      console.log('TMDB search response:', response);
+      
+      if (response.results && response.results.length > 0) {
+        const convertedResults = response.results.map(convertTMDBToMetadataMatch);
+        setSearchResults(convertedResults);
+        console.log('Converted search results:', convertedResults);
+      } else {
+        setSearchResults([]);
+        toast({
+          title: "No results found",
+          description: `No results found for "${searchQuery}"`,
+          variant: "destructive"
+        });
+      }
     } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
       toast({
         title: "Search failed",
-        description: "Could not search for metadata. Please try again.",
+        description: "Could not search for metadata. Please check your backend connection.",
         variant: "destructive"
       });
     } finally {
