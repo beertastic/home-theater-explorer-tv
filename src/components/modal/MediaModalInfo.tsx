@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Calendar, Clock, Star, Plus, Tag, Monitor, Volume2, Subtitles, Eye, EyeOff, PlayCircle } from 'lucide-react';
+import { Calendar, Clock, Star, Plus, Tag, Monitor, Volume2, Subtitles, Eye, EyeOff, PlayCircle, ChevronDown, ExternalLink } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import VideoPlayer from '../VideoPlayer';
 
@@ -23,14 +24,37 @@ const MediaModalInfo = ({
   getSubtitleLanguages
 }: MediaModalInfoProps) => {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [showPlayOptions, setShowPlayOptions] = useState(false);
 
   // Sample video URL - in a real app, this would come from your media item
   const getVideoUrl = () => {
     return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   };
 
-  const handlePlayClick = () => {
+  const handlePlayInBrowser = () => {
     setShowVideoPlayer(true);
+    setShowPlayOptions(false);
+  };
+
+  const handlePlayInExternal = () => {
+    const videoUrl = getVideoUrl();
+    // Try to open with VLC protocol first, fallback to direct download
+    const vlcUrl = `vlc://${videoUrl}`;
+    
+    // Create a temporary link to trigger the external app
+    const link = document.createElement('a');
+    link.href = vlcUrl;
+    link.click();
+    
+    // Fallback: also provide direct file access
+    setTimeout(() => {
+      const fallbackLink = document.createElement('a');
+      fallbackLink.href = videoUrl;
+      fallbackLink.download = media.title;
+      fallbackLink.click();
+    }, 1000);
+    
+    setShowPlayOptions(false);
   };
 
   const handleCloseVideoPlayer = () => {
@@ -151,13 +175,51 @@ const MediaModalInfo = ({
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-4">
-          <button 
-            onClick={handlePlayClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2"
-          >
-            <PlayCircle className="h-5 w-5 fill-current" />
-            {media.watchStatus === 'in-progress' ? 'Continue Watching' : 'Play Now'}
-          </button>
+          {/* Play button with dropdown */}
+          <div className="relative">
+            <div className="flex">
+              <button 
+                onClick={handlePlayInBrowser}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-l-xl font-semibold transition-colors flex items-center gap-2"
+              >
+                <PlayCircle className="h-5 w-5 fill-current" />
+                {media.watchStatus === 'in-progress' ? 'Continue Watching' : 'Play Now'}
+              </button>
+              
+              <button
+                onClick={() => setShowPlayOptions(!showPlayOptions)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 rounded-r-xl font-semibold transition-colors border-l border-blue-500"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Play options dropdown */}
+            {showPlayOptions && (
+              <div className="absolute top-full left-0 mt-2 bg-slate-800 rounded-lg shadow-xl border border-slate-600 min-w-64 z-10">
+                <button
+                  onClick={handlePlayInBrowser}
+                  className="w-full px-4 py-3 text-left hover:bg-slate-700 rounded-t-lg transition-colors flex items-center gap-3 text-white"
+                >
+                  <Monitor className="h-4 w-4 text-blue-400" />
+                  <div>
+                    <div className="font-medium">Play in Browser</div>
+                    <div className="text-xs text-gray-400">Built-in video player</div>
+                  </div>
+                </button>
+                <button
+                  onClick={handlePlayInExternal}
+                  className="w-full px-4 py-3 text-left hover:bg-slate-700 rounded-b-lg transition-colors flex items-center gap-3 text-white"
+                >
+                  <ExternalLink className="h-4 w-4 text-green-400" />
+                  <div>
+                    <div className="font-medium">Open in External App</div>
+                    <div className="text-xs text-gray-400">VLC, MPC-HC, etc.</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
           
           {/* Watch Status Controls */}
           <div className="flex gap-2">
