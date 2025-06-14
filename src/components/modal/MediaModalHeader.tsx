@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Play, ChevronDown, Monitor, ExternalLink } from 'lucide-react';
 import { MediaItem } from '@/types/media';
@@ -15,8 +14,12 @@ const MediaModalHeader = ({ media, onClose, getPlaceholderImage }: MediaModalHea
   const [showPlayOptions, setShowPlayOptions] = useState(false);
 
   const getVideoUrl = () => {
-    // Always use the streaming endpoint for the actual media file
-    return `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath || media.id)}`;
+    // Try the streaming endpoint for the actual media file first
+    if (media.filePath) {
+      return `http://192.168.1.94:3001/api/media/stream/${encodeURIComponent(media.filePath)}`;
+    }
+    // Fallback to ID-based streaming
+    return `http://192.168.1.94:3001/api/media/stream/${media.id}`;
   };
 
   const handlePlayInBrowser = () => {

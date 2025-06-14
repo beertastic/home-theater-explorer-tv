@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, Settings, Subtitles } from 'lucide-react';
 
@@ -19,6 +18,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
   const [showSettings, setShowSettings] = useState(false);
   const [textTracks, setTextTracks] = useState<TextTrack[]>([]);
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState(-1);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -36,14 +36,27 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
       }
     };
 
+    const handleError = () => {
+      console.error('Video failed to load:', src);
+      setVideoError(true);
+    };
+
+    const handleCanPlay = () => {
+      setVideoError(false);
+    };
+
     video.addEventListener('timeupdate', updateTime);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('error', handleError);
+    video.addEventListener('canplay', handleCanPlay);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('error', handleError);
+      video.removeEventListener('canplay', handleCanPlay);
     };
-  }, []);
+  }, [src]);
 
   const handleCloseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -52,12 +65,15 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
 
   const togglePlay = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || videoError) return;
 
     if (isPlaying) {
       video.pause();
     } else {
-      video.play();
+      video.play().catch(err => {
+        console.error('Error playing video:', err);
+        setVideoError(true);
+      });
     }
     setIsPlaying(!isPlaying);
   };
@@ -129,6 +145,36 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
       setSelectedSubtitleTrack(-1);
     }
   };
+
+  if (videoError) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-white text-2xl mb-4">Video Unavailable</h2>
+          <p className="text-gray-300 mb-6">The video file could not be loaded. It may not be available on the server.</p>
+          <div className="space-x-4">
+            <button
+              onClick={handleCloseClick}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => {
+                setVideoError(false);
+                if (videoRef.current) {
+                  videoRef.current.load();
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
