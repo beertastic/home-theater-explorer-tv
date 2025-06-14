@@ -1,9 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Play, Info, Star, Calendar, Clock } from 'lucide-react';
+import { Search, Play, Info, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
 import { mockMediaData } from '@/data/mockMedia';
+import { useToast } from '@/hooks/use-toast';
 
 interface MediaItem {
   id: string;
@@ -16,31 +17,79 @@ interface MediaItem {
   thumbnail: string;
   backdrop: string;
   genre: string[];
+  dateAdded: string;
 }
 
 const MediaBrowser = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added'>('all');
+  const [isScanning, setIsScanning] = useState(false);
+  const { toast } = useToast();
+
+  const handleRescan = async () => {
+    setIsScanning(true);
+    toast({
+      title: "Scanning media folders...",
+      description: "Looking for new content on your NAS",
+    });
+
+    // Simulate scanning process
+    setTimeout(() => {
+      setIsScanning(false);
+      toast({
+        title: "Scan complete!",
+        description: "Found 0 new items", // In real implementation, this would show actual count
+      });
+    }, 3000);
+  };
 
   const filteredMedia = useMemo(() => {
-    return mockMediaData.filter(item => {
+    let filtered = mockMediaData.filter(item => {
       const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            item.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      if (activeFilter === 'recently-added') {
+        return matchesSearch; // Show all types for recently added
+      }
+      
       const matchesFilter = activeFilter === 'all' || item.type === activeFilter;
       return matchesSearch && matchesFilter;
     });
+
+    // Sort by date added if recently added view is active
+    if (activeFilter === 'recently-added') {
+      filtered = filtered.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+    }
+
+    return filtered;
   }, [searchQuery, activeFilter]);
 
   return (
     <div className="min-h-screen p-8">
       {/* Header */}
-      <div className="mb-12">
-        <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          Media Center
-        </h1>
-        <p className="text-xl text-gray-300">Your personal media collection</p>
+      <div className="mb-12 flex items-center justify-between">
+        <div>
+          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Media Center
+          </h1>
+          <p className="text-xl text-gray-300">Your personal media collection</p>
+        </div>
+        
+        {/* Update/Rescan Button */}
+        <button
+          onClick={handleRescan}
+          disabled={isScanning}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+            isScanning 
+              ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
+          }`}
+        >
+          <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
+          {isScanning ? 'Scanning...' : 'Update Library'}
+        </button>
       </div>
 
       {/* Search and Filters */}
@@ -59,12 +108,13 @@ const MediaBrowser = () => {
         <div className="flex gap-2">
           {[
             { key: 'all', label: 'All' },
+            { key: 'recently-added', label: 'Recently Added' },
             { key: 'movie', label: 'Movies' },
             { key: 'tv', label: 'TV Shows' }
           ].map(filter => (
             <button
               key={filter.key}
-              onClick={() => setActiveFilter(filter.key as 'all' | 'movie' | 'tv')}
+              onClick={() => setActiveFilter(filter.key as 'all' | 'movie' | 'tv' | 'recently-added')}
               className={`px-6 py-2 rounded-lg font-medium transition-all ${
                 activeFilter === filter.key
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
@@ -77,6 +127,14 @@ const MediaBrowser = () => {
         </div>
       </div>
 
+      {/* Recently Added Header */}
+      {activeFilter === 'recently-added' && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-2">Recently Added</h2>
+          <p className="text-gray-400">Latest additions to your media library</p>
+        </div>
+      )}
+
       {/* Media Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
         {filteredMedia.map((media) => (
@@ -84,6 +142,7 @@ const MediaBrowser = () => {
             key={media.id}
             media={media}
             onClick={() => setSelectedMedia(media)}
+            showDateAdded={activeFilter === 'recently-added'}
           />
         ))}
       </div>
@@ -91,6 +150,7 @@ const MediaBrowser = () => {
       {/* Results count */}
       <div className="mt-8 text-center text-gray-400">
         Showing {filteredMedia.length} of {mockMediaData.length} items
+        {activeFilter === 'recently-added' && ' (sorted by date added)'}
       </div>
 
       {/* Media Modal */}

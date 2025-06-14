@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Play, Star, Calendar, Clock, Tag } from 'lucide-react';
+import { X, Play, Star, Calendar, Clock, Tag, Plus } from 'lucide-react';
 
 interface MediaItem {
   id: string;
@@ -13,6 +13,7 @@ interface MediaItem {
   thumbnail: string;
   backdrop: string;
   genre: string[];
+  dateAdded: string;
 }
 
 interface MediaModalProps {
@@ -21,6 +22,15 @@ interface MediaModalProps {
 }
 
 const MediaModal = ({ media, onClose }: MediaModalProps) => {
+  const formatDateAdded = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
       <div className="bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -86,6 +96,10 @@ const MediaModal = ({ media, onClose }: MediaModalProps) => {
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-400 fill-current" />
                   <span>{media.rating}/10</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Plus className="h-4 w-4 text-orange-400" />
+                  <span>Added {formatDateAdded(media.dateAdded)}</span>
                 </div>
                 <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
                   media.type === 'movie' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'

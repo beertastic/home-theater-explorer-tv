@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Play, Star, Clock, Calendar } from 'lucide-react';
+import { Play, Star, Clock, Calendar, Plus } from 'lucide-react';
 
 interface MediaItem {
   id: string;
@@ -13,14 +13,28 @@ interface MediaItem {
   thumbnail: string;
   backdrop: string;
   genre: string[];
+  dateAdded: string;
 }
 
 interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
+  showDateAdded?: boolean;
 }
 
-const MediaCard = ({ media, onClick }: MediaCardProps) => {
+const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) => {
+  const formatDateAdded = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Added today';
+    if (diffDays <= 7) return `Added ${diffDays} days ago`;
+    if (diffDays <= 30) return `Added ${Math.ceil(diffDays / 7)} weeks ago`;
+    return `Added ${date.toLocaleDateString()}`;
+  };
+
   return (
     <div
       onClick={onClick}
@@ -55,16 +69,35 @@ const MediaCard = ({ media, onClick }: MediaCardProps) => {
           </span>
         </div>
 
+        {/* Recently added badge */}
+        {showDateAdded && (
+          <div className="absolute top-3 left-3 z-20">
+            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-600 text-white flex items-center gap-1">
+              <Plus className="h-3 w-3" />
+              NEW
+            </span>
+          </div>
+        )}
+
         {/* Bottom info */}
         <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
           <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2 group-hover:text-blue-300 transition-colors">
             {media.title}
           </h3>
           <div className="flex items-center gap-2 text-xs text-gray-300">
-            <Calendar className="h-3 w-3" />
-            <span>{media.year}</span>
-            <Star className="h-3 w-3 text-yellow-400 fill-current ml-2" />
-            <span>{media.rating}</span>
+            {showDateAdded ? (
+              <>
+                <Plus className="h-3 w-3" />
+                <span>{formatDateAdded(media.dateAdded)}</span>
+              </>
+            ) : (
+              <>
+                <Calendar className="h-3 w-3" />
+                <span>{media.year}</span>
+                <Star className="h-3 w-3 text-yellow-400 fill-current ml-2" />
+                <span>{media.rating}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
