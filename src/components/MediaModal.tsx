@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Play, Star, Calendar, Clock, Tag, Plus, Eye, EyeOff, PlayCircle, Monitor, Volume2, Subtitles } from 'lucide-react';
+import { X, Play, Star, Calendar, Clock, Tag, Plus, Eye, EyeOff, PlayCircle, Monitor, Volume2, Subtitles, Heart } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import EpisodeList from './EpisodeList';
 
@@ -8,9 +8,10 @@ interface MediaModalProps {
   onClose: () => void;
   onUpdateWatchStatus: (id: string, status: 'unwatched' | 'in-progress' | 'watched') => void;
   onUpdateEpisodeStatus?: (mediaId: string, episodeId: string, status: 'watched' | 'unwatched') => void;
+  onToggleFavorite: (id: string) => void;
 }
 
-const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus }: MediaModalProps) => {
+const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus, onToggleFavorite }: MediaModalProps) => {
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -121,7 +122,15 @@ const MediaModal = ({ media, onClose, onUpdateWatchStatus, onUpdateEpisodeStatus
 
             {/* Info */}
             <div className="lg:w-2/3">
-              <h1 className="text-4xl font-bold text-white mb-4">{media.title}</h1>
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-4xl font-bold text-white">{media.title}</h1>
+                <button
+                  onClick={() => onToggleFavorite(media.id)}
+                  className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                >
+                  <Heart className={`h-6 w-6 ${media.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+                </button>
+              </div>
               
               {/* Watch Status */}
               <div className="mb-6">

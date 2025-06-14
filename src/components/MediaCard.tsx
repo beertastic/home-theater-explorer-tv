@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Play, Star, Clock, Calendar, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
 import { MediaItem } from '@/types/media';
@@ -6,9 +7,10 @@ interface MediaCardProps {
   media: MediaItem;
   onClick: () => void;
   showDateAdded?: boolean;
+  onToggleFavorite: (id: string) => void;
 }
 
-const MediaCard = ({ media, onClick, showDateAdded = false }: MediaCardProps) => {
+const MediaCard = ({ media, onClick, showDateAdded = false, onToggleFavorite }: MediaCardProps) => {
   const formatDateAdded = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
