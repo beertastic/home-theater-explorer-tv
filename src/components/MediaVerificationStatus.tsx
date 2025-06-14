@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -33,10 +34,10 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Mock verification data generator
+  // Mock verification data generator - only return issues, not verified items
   const generateMockVerificationResult = (id: string): VerificationResult => {
-    const statuses: ('verified' | 'file-missing' | 'missing')[] = ['verified', 'file-missing', 'missing'];
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const issueStatuses: ('file-missing' | 'missing')[] = ['file-missing', 'missing'];
+    const randomStatus = issueStatuses[Math.floor(Math.random() * issueStatuses.length)];
     const mediaType = Math.random() > 0.5 ? 'movie' : 'tv';
     
     return {
@@ -46,7 +47,7 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
       year: 2020 + Math.floor(Math.random() * 4),
       dateAdded: new Date().toISOString().split('T')[0],
       databaseExists: randomStatus !== 'missing',
-      fileSystemExists: randomStatus === 'verified',
+      fileSystemExists: false, // Issues only
       status: randomStatus,
       filePath: `/nas/media/${mediaType === 'movie' ? 'movies' : 'tv'}/${id}/`,
       genre: ['Action', 'Drama']
@@ -70,7 +71,7 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
         });
       }
     } catch (error) {
-      // Use mock data when API fails
+      // Use mock data when API fails - but only show if there's an issue
       console.log('API failed, using mock verification data for testing');
       const mockResult = generateMockVerificationResult(id);
       setVerificationResult(mockResult);
@@ -78,7 +79,7 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
       toast({
         title: "Using Mock Data",
         description: `Mock verification status: ${mockResult.status}`,
-        variant: mockResult.status === 'verified' ? 'default' : 'destructive'
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -105,13 +106,14 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
         });
       }
     } catch (error) {
-      // Use mock bulk data when API fails
+      // Use mock bulk data when API fails - only show items with issues
       console.log('API failed, using mock bulk verification data for testing');
+      const issueResults = Array.from({ length: 3 }, (_, i) => generateMockVerificationResult(`issue-${i + 1}`));
       const mockBulkResults = {
-        totalChecked: 12,
-        verified: 8,
-        issues: 4,
-        results: Array.from({ length: 5 }, (_, i) => generateMockVerificationResult(`mock-${i + 1}`))
+        totalChecked: 15,
+        verified: 12,
+        issues: 3,
+        results: issueResults // Only items with issues
       };
       setBulkResults(mockBulkResults);
       

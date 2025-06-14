@@ -13,7 +13,10 @@ const EpisodePopulator = ({ mediaId, mediaTitle, onEpisodesPopulated }: EpisodeP
   const [isPopulating, setIsPopulating] = useState(false);
   const { toast } = useToast();
 
-  const handlePopulateEpisodes = async () => {
+  const handlePopulateEpisodes = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsPopulating(true);
     
     try {
