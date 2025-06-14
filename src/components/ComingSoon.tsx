@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
