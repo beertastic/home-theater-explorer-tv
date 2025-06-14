@@ -55,6 +55,7 @@ export const mockMedia: MediaItem[] = [
         duration: '47m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E1',
         airDate: '2016-07-15',
+        dateAdded: '2024-01-10',
         watchStatus: 'watched',
         technicalInfo: {
           videoCodec: 'H.264',
@@ -74,6 +75,7 @@ export const mockMedia: MediaItem[] = [
         duration: '55m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E2',
         airDate: '2016-07-15',
+        dateAdded: '2024-06-13', // Recent episode addition
         watchStatus: 'watched',
         technicalInfo: {
           videoCodec: 'H.264',
@@ -93,6 +95,7 @@ export const mockMedia: MediaItem[] = [
         duration: '51m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Stranger+Things+S1E3',
         airDate: '2016-07-15',
+        dateAdded: '2024-01-10',
         watchStatus: 'unwatched',
         technicalInfo: {
           videoCodec: 'H.264',
@@ -236,6 +239,7 @@ export const mockMedia: MediaItem[] = [
         duration: '58m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E1',
         airDate: '2008-01-20',
+        dateAdded: '2023-10-01',
         watchStatus: 'watched',
         technicalInfo: {
           videoCodec: 'H.264',
@@ -255,6 +259,7 @@ export const mockMedia: MediaItem[] = [
         duration: '48m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E2',
         airDate: '2008-01-27',
+        dateAdded: '2024-06-14', // Very recent episode addition
         watchStatus: 'watched',
         technicalInfo: {
           videoCodec: 'H.264',
@@ -274,6 +279,7 @@ export const mockMedia: MediaItem[] = [
         duration: '48m',
         thumbnail: 'https://via.placeholder.com/300x170/334155/ffffff?text=Breaking+Bad+S1E3',
         airDate: '2008-02-03',
+        dateAdded: '2023-10-01',
         watchStatus: 'watched',
         technicalInfo: {
           videoCodec: 'H.264',

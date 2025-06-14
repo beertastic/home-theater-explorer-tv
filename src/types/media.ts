@@ -24,6 +24,7 @@ export interface Episode {
   duration: string;
   thumbnail: string;
   airDate: string;
+  dateAdded: string; // New field for when episode was added to library
   watchStatus: 'watched' | 'unwatched';
   technicalInfo?: MediaTechnicalInfo;
 }

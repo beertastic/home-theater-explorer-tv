@@ -100,6 +100,29 @@ const MediaBrowserContainer = () => {
 
   const { focusedIndex, focusedSection } = useKeyboardNavigation(navigationItems);
 
+  // Helper function to get the most recent addition date for a media item
+  const getMostRecentAdditionDate = (item: any) => {
+    if (item.type === 'movie') {
+      return new Date(item.dateAdded);
+    }
+    
+    // For TV shows, compare show dateAdded with most recent episode dateAdded
+    let mostRecentDate = new Date(item.dateAdded);
+    
+    if (item.episodes && item.episodes.length > 0) {
+      const mostRecentEpisodeDate = item.episodes.reduce((latest: Date, episode: any) => {
+        const episodeDate = new Date(episode.dateAdded);
+        return episodeDate > latest ? episodeDate : latest;
+      }, new Date(0)); // Start with earliest possible date
+      
+      if (mostRecentEpisodeDate > mostRecentDate) {
+        mostRecentDate = mostRecentEpisodeDate;
+      }
+    }
+    
+    return mostRecentDate;
+  };
+
   // Calculate movie and TV show counts
   const movieCount = useMemo(() => mediaData.filter(item => item.type === 'movie').length, [mediaData]);
   const tvShowCount = useMemo(() => mediaData.filter(item => item.type === 'tv').length, [mediaData]);
@@ -131,7 +154,11 @@ const MediaBrowserContainer = () => {
     });
 
     if (activeFilter === 'recently-added') {
-      filtered = filtered.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+      filtered = filtered.sort((a, b) => {
+        const dateA = getMostRecentAdditionDate(a);
+        const dateB = getMostRecentAdditionDate(b);
+        return dateB.getTime() - dateA.getTime();
+      });
     } else if (activeFilter === 'in-progress') {
       filtered = filtered.sort((a, b) => {
         const aLastWatched = a.progress?.lastWatched ? new Date(a.progress.lastWatched).getTime() : 0;
