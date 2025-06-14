@@ -15,6 +15,7 @@ interface MediaFiltersProps {
   focusedIndex: number;
   movieCount: number;
   tvShowCount: number;
+  favoritesCount: number;
 }
 
 const MediaFilters = ({
@@ -28,7 +29,8 @@ const MediaFilters = ({
   navigationItems,
   focusedIndex,
   movieCount,
-  tvShowCount
+  tvShowCount,
+  favoritesCount
 }: MediaFiltersProps) => {
   const filters = [
     { key: 'all', label: 'All' },
@@ -36,7 +38,7 @@ const MediaFilters = ({
     { key: 'recently-added', label: 'Recently Added' },
     { key: 'movie', label: `Movies (${movieCount})` },
     { key: 'tv', label: `TV Shows (${tvShowCount})` },
-    { key: 'favorites', label: 'Favorites' }
+    { key: 'favorites', label: `Favorites (${favoritesCount})` }
   ];
 
   const getFilterLabel = () => {

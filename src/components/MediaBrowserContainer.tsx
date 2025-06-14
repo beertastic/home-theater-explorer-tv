@@ -1,4 +1,3 @@
-
 import React, { useMemo, useRef, useEffect } from 'react';
 import MediaBrowserHeader from './MediaBrowserHeader';
 import MediaFilters from './MediaFilters';
@@ -127,6 +126,7 @@ const MediaBrowserContainer = () => {
   // Calculate movie and TV show counts
   const movieCount = useMemo(() => mediaData.filter(item => item.type === 'movie').length, [mediaData]);
   const tvShowCount = useMemo(() => mediaData.filter(item => item.type === 'tv').length, [mediaData]);
+  const favoritesCount = useMemo(() => mediaData.filter(item => item.isFavorite === true).length, [mediaData]);
 
   const filteredMedia = useMemo(() => {
     let filtered = mediaData.filter(item => {
@@ -219,6 +219,7 @@ const MediaBrowserContainer = () => {
         focusedIndex={focusedIndex}
         movieCount={movieCount}
         tvShowCount={tvShowCount}
+        favoritesCount={favoritesCount}
       />
 
       <MediaGrid
