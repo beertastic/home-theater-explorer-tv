@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Shuffle, RotateCcw, Settings, Calendar } from 'lucide-react';
 import DownloadsManager from './DownloadsManager';
@@ -73,7 +74,7 @@ const MediaBrowserHeader = ({
             isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
           >
             <RotateCcw className={`h-4 w-4 ${isScanning ? 'animate-spin' : ''}`} />
-            {isScanning ? 'Scanning...' : 'Rescan'}
+            {isScanning ? 'Updating...' : 'Update Library'}
           </FocusableButton>
           
           <FocusableButton

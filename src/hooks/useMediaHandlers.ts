@@ -24,14 +24,14 @@ export const useMediaHandlers = ({
   const handleRescan = async () => {
     setIsScanning(true);
     toast({
-      title: "Scanning media folders...",
+      title: "Updating library...",
       description: "Looking for new content on your NAS",
     });
 
     setTimeout(() => {
       setIsScanning(false);
       toast({
-        title: "Scan complete!",
+        title: "Library update complete!",
         description: "Found 0 new items",
       });
     }, 3000);
