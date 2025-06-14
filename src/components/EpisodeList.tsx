@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Play, Eye, EyeOff, Calendar, Clock, CheckCircle, Circle } from 'lucide-react';
-import { Episode } from '@/data/mockMedia';
+import { Episode } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
 
 interface EpisodeListProps {

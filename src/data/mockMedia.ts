@@ -217,4 +217,5 @@ export const mockMedia: MediaItem[] = [
   }
 ];
 
-export { MediaItem };
+export { mockMedia };
+export type { MediaItem };

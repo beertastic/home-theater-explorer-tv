@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
 import MediaPagination from './MediaPagination';
-import { mockMediaData, MediaItem } from '@/data/mockMedia';
+import { mockMedia, MediaItem } from '@/data/mockMedia';
 import { useToast } from '@/hooks/use-toast';
 
 const MediaBrowser = () => {
@@ -13,7 +12,7 @@ const MediaBrowser = () => {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'movie' | 'tv' | 'recently-added' | 'in-progress'>('all');
   const [isScanning, setIsScanning] = useState(false);
-  const [mediaData, setMediaData] = useState<MediaItem[]>(mockMediaData);
+  const [mediaData, setMediaData] = useState<MediaItem[]>(mockMedia);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(24); // 24 items per page for good grid layout
   const [isRandomSelectorOpen, setIsRandomSelectorOpen] = useState(false);
