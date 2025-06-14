@@ -110,7 +110,7 @@ export const mockMedia: MediaItem[] = [
   },
   {
     id: '4',
-    title: 'The Queen’s Gambit',
+    title: 'The Queen\'s Gambit',
     type: 'tv',
     year: 2020,
     rating: 8.6,
