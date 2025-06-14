@@ -1,10 +1,12 @@
+
 import React, { useState, useMemo } from 'react';
 import { Search, Play, Info, Star, Calendar, Clock, RefreshCw, Sparkles } from 'lucide-react';
 import MediaCard from './MediaCard';
 import MediaModal from './MediaModal';
 import RandomMovieSelector from './RandomMovieSelector';
 import MediaPagination from './MediaPagination';
-import { mockMedia, MediaItem } from '@/data/mockMedia';
+import { mockMedia } from '@/data/mockMedia';
+import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
 
 const MediaBrowser = () => {

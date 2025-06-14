@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Shuffle, Sparkles, X } from 'lucide-react';
-import { MediaItem } from '@/data/mockMedia';
+import { MediaItem } from '@/types/media';
 import MediaCard from './MediaCard';
 import {
   Dialog,

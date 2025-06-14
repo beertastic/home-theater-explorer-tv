@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Play, Star, Clock, Calendar, Plus, Eye, EyeOff, PlayCircle } from 'lucide-react';
-import { MediaItem } from '@/data/mockMedia';
+import { MediaItem } from '@/types/media';
 
 interface MediaCardProps {
   media: MediaItem;
