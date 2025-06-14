@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Shuffle, Sparkles, X } from 'lucide-react';
 import { MediaItem } from '@/types/media';
@@ -108,6 +107,7 @@ const RandomMovieSelector = ({ mediaData, onSelectMedia, onToggleFavorite, isOpe
                       media={movie}
                       onClick={() => handleMovieSelect(movie)}
                       onToggleFavorite={onToggleFavorite}
+                      showDateAdded={false}
                     />
                   </div>
                 ))}

@@ -238,7 +238,6 @@ const MediaBrowser = () => {
     <div className="min-h-screen p-8">
       <MediaBrowserHeader
         onRandomSelect={() => setIsRandomSelectorOpen(true)}
-        onOpenScanner={handleOpenScanner}
         onRescan={handleRescan}
         isScanning={isScanning}
         actionRefs={actionRefs}
