@@ -39,13 +39,7 @@ const MediaScanner = ({ isOpen, onClose, onScanComplete }: MediaScannerProps) =>
     
     try {
       console.log('Scanning file system for media folders...');
-      const response = await fetch(`${apiService.API_BASE_URL}/scan/folders`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to scan folders: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await apiService.scanFolders();
       console.log('Scan results:', data);
       
       if (data.success) {
