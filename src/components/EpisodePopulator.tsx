@@ -76,6 +76,7 @@ const EpisodePopulator = ({ mediaId, mediaTitle, onEpisodesPopulated }: EpisodeP
           This TV show doesn't have episode data yet. Would you like to fetch episodes from TMDB?
         </p>
         <button
+          type="button"
           onClick={handlePopulateEpisodes}
           disabled={isPopulating}
           className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-semibold transition-colors mx-auto"
