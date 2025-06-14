@@ -13,11 +13,12 @@ import {
 interface RandomMovieSelectorProps {
   mediaData: MediaItem[];
   onSelectMedia: (media: MediaItem) => void;
+  onToggleFavorite: (id: string) => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const RandomMovieSelector = ({ mediaData, onSelectMedia, isOpen, onClose }: RandomMovieSelectorProps) => {
+const RandomMovieSelector = ({ mediaData, onSelectMedia, onToggleFavorite, isOpen, onClose }: RandomMovieSelectorProps) => {
   const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [randomMovies, setRandomMovies] = useState<MediaItem[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -106,6 +107,7 @@ const RandomMovieSelector = ({ mediaData, onSelectMedia, isOpen, onClose }: Rand
                     <MediaCard
                       media={movie}
                       onClick={() => handleMovieSelect(movie)}
+                      onToggleFavorite={onToggleFavorite}
                     />
                   </div>
                 ))}
