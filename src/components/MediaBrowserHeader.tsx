@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { RefreshCw, Sparkles } from 'lucide-react';
+import { Shuffle, RefreshCw, Search } from 'lucide-react';
 import FocusableButton from './FocusableButton';
 
 interface MediaBrowserHeaderProps {
   onRandomSelect: () => void;
   onRescan: () => void;
+  onOpenScanner: () => void;
   isScanning: boolean;
   actionRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
   focusedSection: string;
@@ -13,48 +14,52 @@ interface MediaBrowserHeaderProps {
   focusedIndex: number;
 }
 
-const MediaBrowserHeader = ({
-  onRandomSelect,
-  onRescan,
-  isScanning,
-  actionRefs,
-  focusedSection,
-  navigationItems,
-  focusedIndex
+const MediaBrowserHeader = ({ 
+  onRandomSelect, 
+  onRescan, 
+  onOpenScanner,
+  isScanning, 
+  actionRefs, 
+  focusedSection, 
+  navigationItems, 
+  focusedIndex 
 }: MediaBrowserHeaderProps) => {
   return (
-    <div className="mb-12 flex items-center justify-between">
+    <div className="flex items-center justify-between mb-8">
       <div>
-        <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          Media Center
-        </h1>
-        <p className="text-xl text-gray-300">Your personal media collection • Use arrow keys to navigate</p>
+        <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
+        <p className="text-gray-400">Browse and manage your movies and TV shows</p>
       </div>
-      
       <div className="flex gap-3">
         <FocusableButton
-          ref={(el) => actionRefs.current[0] = el}
-          variant="action"
           onClick={onRandomSelect}
+          ref={(el) => (actionRefs.current[0] = el)}
           isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-0'}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
         >
-          <Sparkles className="h-5 w-5" />
-          Random Pick
+          <Shuffle className="h-5 w-5" />
+          Random
         </FocusableButton>
-
+        
         <FocusableButton
-          ref={(el) => actionRefs.current[1] = el}
-          variant="action"
+          onClick={onOpenScanner}
+          ref={(el) => (actionRefs.current[1] = el)}
+          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+        >
+          <Search className="h-5 w-5" />
+          Scan for New Media
+        </FocusableButton>
+        
+        <FocusableButton
           onClick={onRescan}
           disabled={isScanning}
-          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-1'}
-          className={isScanning 
-            ? 'bg-slate-700 text-gray-400 cursor-not-allowed' 
-            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/25'
-          }
+          ref={(el) => (actionRefs.current[2] = el)}
+          isFocused={focusedSection === 'actions' && navigationItems[focusedIndex]?.id === 'action-2'}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
         >
           <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
-          {isScanning ? 'Scanning...' : 'Update Library'}
+          {isScanning ? 'Scanning...' : 'Quick Rescan'}
         </FocusableButton>
       </div>
     </div>

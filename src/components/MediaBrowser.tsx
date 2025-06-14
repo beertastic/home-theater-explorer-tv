@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import MediaBrowserHeader from './MediaBrowserHeader';
 import MediaFilters from './MediaFilters';
@@ -239,6 +240,7 @@ const MediaBrowser = () => {
       <MediaBrowserHeader
         onRandomSelect={() => setIsRandomSelectorOpen(true)}
         onRescan={handleRescan}
+        onOpenScanner={handleOpenScanner}
         isScanning={isScanning}
         actionRefs={actionRefs}
         focusedSection={focusedSection}
