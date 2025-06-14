@@ -243,9 +243,7 @@ const MediaBrowserContainer = () => {
         focusedSection={focusedSection}
         navigationItems={navigationItems}
         focusedIndex={focusedIndex}
-        movieCount={movieCount}
-        tvShowCount={tvShowCount}
-        favoritesCount={favoritesCount}
+        mediaData={mediaData}
       />
 
       <MediaGrid
