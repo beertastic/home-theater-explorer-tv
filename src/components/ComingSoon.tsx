@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Play } from 'lucide-react';
 import MediaVerificationStatus from './MediaVerificationStatus';
@@ -84,7 +83,6 @@ const ComingSoon = ({ mediaData, onToggleFavorite }: ComingSoonProps) => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Coming Soon & New Arrivals</h2>
-          <p className="text-gray-400">Stay up to date with upcoming releases and recent additions</p>
         </div>
       </div>
 
