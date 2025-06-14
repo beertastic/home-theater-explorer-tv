@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shuffle, RefreshCw, Search } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Film, Tv } from 'lucide-react';
 import FocusableButton from './FocusableButton';
 
 interface MediaBrowserHeaderProps {
@@ -12,6 +12,8 @@ interface MediaBrowserHeaderProps {
   focusedSection: string;
   navigationItems: any[];
   focusedIndex: number;
+  movieCount: number;
+  tvShowCount: number;
 }
 
 const MediaBrowserHeader = ({ 
@@ -22,14 +24,33 @@ const MediaBrowserHeader = ({
   actionRefs, 
   focusedSection, 
   navigationItems, 
-  focusedIndex 
+  focusedIndex,
+  movieCount,
+  tvShowCount
 }: MediaBrowserHeaderProps) => {
   return (
     <div className="flex items-center justify-between mb-8">
-      <div>
-        <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
-        <p className="text-gray-400">Browse and manage your movies and TV shows</p>
+      <div className="flex items-center gap-8">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-2">Media Library</h1>
+          <p className="text-gray-400">Browse and manage your movies and TV shows</p>
+        </div>
+        
+        {/* Count buttons */}
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg">
+            <Film className="h-5 w-5 text-blue-400" />
+            <span className="text-white font-semibold">{movieCount}</span>
+            <span className="text-gray-400 text-sm">Movies</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg">
+            <Tv className="h-5 w-5 text-purple-400" />
+            <span className="text-white font-semibold">{tvShowCount}</span>
+            <span className="text-gray-400 text-sm">TV Shows</span>
+          </div>
+        </div>
       </div>
+      
       <div className="flex gap-3">
         <FocusableButton
           onClick={onRandomSelect}
