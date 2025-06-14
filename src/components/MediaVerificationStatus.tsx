@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -38,17 +37,18 @@ const MediaVerificationStatus = ({ mediaId, showBulkCheck = false }: MediaVerifi
   const generateMockVerificationResult = (id: string): VerificationResult => {
     const statuses: ('verified' | 'file-missing' | 'missing')[] = ['verified', 'file-missing', 'missing'];
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const mediaType = Math.random() > 0.5 ? 'movie' : 'tv';
     
     return {
       id: id,
       title: `Mock Media ${id}`,
-      type: Math.random() > 0.5 ? 'movie' : 'tv',
+      type: mediaType,
       year: 2020 + Math.floor(Math.random() * 4),
       dateAdded: new Date().toISOString().split('T')[0],
       databaseExists: randomStatus !== 'missing',
       fileSystemExists: randomStatus === 'verified',
       status: randomStatus,
-      filePath: `/nas/media/${randomStatus === 'movie' ? 'movies' : 'tv'}/${id}/`,
+      filePath: `/nas/media/${mediaType === 'movie' ? 'movies' : 'tv'}/${id}/`,
       genre: ['Action', 'Drama']
     };
   };
