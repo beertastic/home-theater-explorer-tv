@@ -17,9 +17,7 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
   const [textTracks, setTextTracks] = useState<TextTrack[]>([]);
-  const [selectedAudioTrack, setSelectedAudioTrack] = useState(0);
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState(-1);
 
   useEffect(() => {
@@ -31,11 +29,6 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
     
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
-      
-      // Get audio tracks
-      if (video.audioTracks) {
-        setAudioTracks(Array.from(video.audioTracks));
-      }
       
       // Get text tracks (subtitles)
       if (video.textTracks) {
@@ -119,22 +112,6 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
     }
   };
 
-  const handleAudioTrackChange = (trackIndex: number) => {
-    const video = videoRef.current;
-    if (!video || !video.audioTracks) return;
-
-    // Disable all audio tracks
-    for (let i = 0; i < video.audioTracks.length; i++) {
-      video.audioTracks[i].enabled = false;
-    }
-    
-    // Enable selected track
-    if (trackIndex >= 0 && trackIndex < video.audioTracks.length) {
-      video.audioTracks[trackIndex].enabled = true;
-      setSelectedAudioTrack(trackIndex);
-    }
-  };
-
   const handleSubtitleTrackChange = (trackIndex: number) => {
     const video = videoRef.current;
     if (!video || !video.textTracks) return;
@@ -199,26 +176,6 @@ const VideoPlayer = ({ src, title, onClose }: VideoPlayerProps) => {
             <div className="absolute bottom-20 right-4 bg-black/90 rounded-lg p-4 min-w-64">
               <h3 className="text-white font-semibold mb-3">Settings</h3>
               
-              {/* Audio tracks */}
-              {audioTracks.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-gray-300 text-sm mb-2">Audio Track</h4>
-                  {audioTracks.map((track, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleAudioTrackChange(index)}
-                      className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-                        selectedAudioTrack === index 
-                          ? 'bg-blue-600 text-white' 
-                          : 'text-gray-300 hover:bg-gray-700'
-                      }`}
-                    >
-                      {track.label || `Audio ${index + 1}`} {track.language && `(${track.language})`}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               {/* Subtitle tracks */}
               <div>
                 <h4 className="text-gray-300 text-sm mb-2">Subtitles</h4>
