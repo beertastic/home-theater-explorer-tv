@@ -29,6 +29,8 @@ const MediaBrowserContainer = () => {
     setIsRandomSelectorOpen,
     isMediaScannerOpen,
     setIsMediaScannerOpen,
+    isLoading,
+    error,
   } = useMediaState();
 
   // Add last updated state
@@ -187,6 +189,30 @@ const MediaBrowserContainer = () => {
       filterRefs.current[0].focus();
     }
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-semibold text-white mb-2">Loading Media Library</h2>
+          <p className="text-gray-400">Connecting to your media server...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-8 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-white mb-2">Connection Error</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <p className="text-gray-500 text-sm">Make sure your backend server is running on port 3001</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-8">

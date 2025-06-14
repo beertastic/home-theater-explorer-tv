@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Search, Edit3, Check, X } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { useToast } from '@/hooks/use-toast';
+import { apiService, TMDBSearchResult } from '@/services/apiService';
 
 interface MetadataEditorProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ interface MetadataEditorProps {
 
 const MetadataEditor = ({ isOpen, onClose, media, onUpdateMetadata }: MetadataEditorProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<TMDBSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
@@ -24,48 +25,49 @@ const MetadataEditor = ({ isOpen, onClose, media, onUpdateMetadata }: MetadataEd
     
     setIsSearching(true);
     
-    // Mock search results - in real app this would call TMDB API
-    setTimeout(() => {
-      setSearchResults([
-        {
-          id: 'tmdb-1',
-          title: media.type === 'tv' ? 'Doctor Who (2005)' : 'Interstellar',
-          year: media.type === 'tv' ? 2005 : 2014,
-          overview: media.type === 'tv' 
-            ? 'The further adventures of the time traveling alien adventurer and companions.'
-            : 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-          poster_path: '/placeholder.svg',
-          vote_average: media.type === 'tv' ? 8.4 : 8.6,
-          type: media.type
-        },
-        {
-          id: 'tmdb-2',
-          title: media.type === 'tv' ? 'Doctor Who (1963)' : 'Inception',
-          year: media.type === 'tv' ? 1963 : 2010,
-          overview: media.type === 'tv'
-            ? 'The original long-running British science fiction television series.'
-            : 'A thief who steals corporate secrets through the use of dream-sharing technology.',
-          poster_path: '/placeholder.svg',
-          vote_average: media.type === 'tv' ? 8.2 : 8.8,
-          type: media.type
-        }
-      ]);
+    try {
+      const response = await apiService.searchTMDB(searchQuery, media.type);
+      setSearchResults(response.results || []);
+      
+      if (response.results && response.results.length === 0) {
+        toast({
+          title: "No results found",
+          description: `No ${media.type === 'tv' ? 'TV shows' : 'movies'} found for "${searchQuery}"`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search failed",
+        description: "Unable to search TMDB. Please check your connection and API key.",
+        variant: "destructive"
+      });
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
-  const handleSelectMetadata = (selectedMetadata: any) => {
+  const handleSelectMetadata = (selectedMetadata: TMDBSearchResult) => {
+    const title = media.type === 'tv' ? selectedMetadata.name : selectedMetadata.title;
+    const releaseDate = media.type === 'tv' ? selectedMetadata.first_air_date : selectedMetadata.release_date;
+    const year = releaseDate ? new Date(releaseDate).getFullYear() : media.year;
+    
     onUpdateMetadata(media.id, {
       ...media,
-      title: selectedMetadata.title,
-      year: selectedMetadata.year,
-      description: selectedMetadata.overview,
+      title: title || media.title,
+      year: year,
+      description: selectedMetadata.overview || media.description,
+      rating: Math.round(selectedMetadata.vote_average * 10) / 10,
+      thumbnail: selectedMetadata.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${selectedMetadata.poster_path}` 
+        : media.thumbnail,
       tmdbId: selectedMetadata.id
     });
     
     toast({
       title: "Metadata updated",
-      description: `${selectedMetadata.title} metadata has been applied`,
+      description: `${title} metadata has been applied`,
     });
     
     onClose();
@@ -119,27 +121,33 @@ const MetadataEditor = ({ isOpen, onClose, media, onUpdateMetadata }: MetadataEd
           {searchResults.length > 0 && (
             <div className="space-y-3">
               <h4 className="text-lg font-semibold text-white">Search Results</h4>
-              {searchResults.map((result) => (
-                <div
-                  key={result.id}
-                  className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h5 className="text-white font-semibold">{result.title} ({result.year})</h5>
-                      <p className="text-gray-400 text-sm mt-1 line-clamp-2">{result.overview}</p>
-                      <p className="text-blue-400 text-sm mt-2">Rating: {result.vote_average}/10</p>
+              {searchResults.map((result) => {
+                const title = media.type === 'tv' ? result.name : result.title;
+                const releaseDate = media.type === 'tv' ? result.first_air_date : result.release_date;
+                const year = releaseDate ? new Date(releaseDate).getFullYear() : 'Unknown';
+                
+                return (
+                  <div
+                    key={result.id}
+                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h5 className="text-white font-semibold">{title} ({year})</h5>
+                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">{result.overview}</p>
+                        <p className="text-blue-400 text-sm mt-2">Rating: {result.vote_average}/10</p>
+                      </div>
+                      <button
+                        onClick={() => handleSelectMetadata(result)}
+                        className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                      >
+                        <Check className="h-4 w-4" />
+                        Select
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleSelectMetadata(result)}
-                      className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                    >
-                      <Check className="h-4 w-4" />
-                      Select
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
